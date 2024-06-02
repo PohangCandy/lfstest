@@ -13,9 +13,9 @@ AASPlayerController::AASPlayerController()
 {
 	//static ConstructorHelpers::FClassFinder<UASMainGameWidget> UI_HUD_C(TEXT("/Game/UI/WB_GameBase_UI.WB_GameBase_UI_C"));
 	static ConstructorHelpers::FClassFinder<UASMainGameWidget> UI_HUD_C(TEXT("/Game/UI/PlayerView/WB_GameBase_UI.WB_GameBase_UI_C"));
+	BasicHUDWidgetClass = UI_HUD_C.Class;
 	//static ConstructorHelpers::FClassFinder<UASMainGameWidget> UI_Snip_C(TEXT("/Game/UI/WB_Sniping_UI.WB_Sniping_UI_C"));
 	static ConstructorHelpers::FClassFinder<UASMainGameWidget> UI_Snip_C(TEXT("/Game/UI/PlayerView/WB_Sniping_UI.WB_Sniping_UI_C"));
-	BasicHUDWidgetClass = UI_HUD_C.Class;
 	SnipHUDWidgetClass = UI_Snip_C.Class;
 	
 }
@@ -41,8 +41,11 @@ void AASPlayerController::BeginPlay()
 	//SetInputMode(FInputModeGameAndUI());
 
 	CurMainHUDWidget = CreateWidget<UASMainGameWidget>(this, BasicHUDWidgetClass);
+	SnipHUD = CreateWidget<UASMainGameWidget>(this, SnipHUDWidgetClass);
 	//CurMainHUDWidget = CreateWidget<UASMainGameWidget>(this, SnipHUDWidgetClass);
 	CurMainHUDWidget->AddToViewport();
+
+	//SnipHUD = CreateWidget<UASMainGameWidget>(this, SnipHUDWidgetClass);
 
 	ConnectUIwithData();
 	PlayerCharacter = Cast<AASCharacterBase>(GetCharacter());
@@ -75,11 +78,17 @@ void AASPlayerController::ConnectUIwithData()
 	//CharacterWidget->BindPlayerBaseForBullet(Cast<AASCharacterBase>(ControllerOwner));
 	//CharacterWidget->BindPlayerBaseForMagazine(Cast<AASCharacterBase>(ControllerOwner));
 	//CharacterWidget->BindPlayerBaseForItem(Cast<AASCharacterBase>(ControllerOwner));
-	CurMainHUDWidget->BindPlayerBase(ControllerOwner);
-	CurMainHUDWidget->BindPlayerBaseForBullet(ControllerOwner);
-	CurMainHUDWidget->BindPlayerBaseForMagazine(ControllerOwner);
-	CurMainHUDWidget->BindPlayerBaseForItem(ControllerOwner);
-	CurMainHUDWidget->BindPlayerBaseForMagnification(ControllerOwner);
+	if (CurMainHUDWidget && CurMainHUDWidget->IsInViewport())
+	{
+		CurMainHUDWidget->BindPlayerBase(ControllerOwner);
+		CurMainHUDWidget->BindPlayerBaseForBullet(ControllerOwner);
+		CurMainHUDWidget->BindPlayerBaseForMagazine(ControllerOwner);
+		CurMainHUDWidget->BindPlayerBaseForItem(ControllerOwner);
+	}
+	if (SnipHUD && SnipHUD->IsInViewport())
+	{
+		SnipHUD->BindPlayerBaseForMagnification(ControllerOwner);
+	}
 	BindZommin();
 }
 
@@ -89,20 +98,40 @@ void AASPlayerController::SetScreenMode(EscreenMode NewScreenMode)
 	switch (NewScreenMode)
 	{
 	case AASPlayerController::EscreenMode::Basic:
-		CurMainHUDWidget->RemoveFromParent();
-		CurMainHUDWidget = CreateWidget<UASMainGameWidget>(this, BasicHUDWidgetClass);
-		ConnectUIwithData();
-		CurMainHUDWidget->AddToViewport();
-		ControllerOwner->InitUIData();
+		if (SnipHUD && SnipHUD->IsInViewport())
+		{
+			SnipHUD->RemoveFromParent();
+		}
+		if (CurMainHUDWidget && !CurMainHUDWidget->IsInViewport())
+		{
+			//CurMainHUDWidget = CreateWidget<UASMainGameWidget>(this, BasicHUDWidgetClass);
+			ConnectUIwithData();
+			CurMainHUDWidget->AddToViewport();
+			ControllerOwner->InitUIData();
+		}
 		//SceneCameraViewPlane->SetHiddenInGame(true, false);
 		//Scope->SetHiddenInGame(true, false);
 		break;
 	case AASPlayerController::EscreenMode::Sniping:
-		CurMainHUDWidget->RemoveFromParent();
-		CurMainHUDWidget = CreateWidget<UASMainGameWidget>(this, SnipHUDWidgetClass);
-		ConnectUIwithData();
-		CurMainHUDWidget->AddToViewport();
-		ControllerOwner->InitUIData();
+		if (!CurMainHUDWidget->IsInViewport())
+		{
+			CurMainHUDWidget->AddToViewport();
+		}
+		if (SnipHUD && !SnipHUD->IsInViewport())
+		{
+			//SnipHUD = CreateWidget<UASMainGameWidget>(this, SnipHUDWidgetClass);
+			SnipHUD->AddToViewport();
+			ConnectUIwithData();
+			ControllerOwner->InitUIData();
+		}
+
+		//CurMainHUDWidget->RemoveFromParent();
+		//CurMainHUDWidget = CreateWidget<UASMainGameWidget>(this, SnipHUDWidgetClass);
+		//SnipHUD = CreateWidget<UASMainGameWidget>(this, SnipHUDWidgetClass);
+		//ConnectUIwithData();
+		//CurMainHUDWidget->AddToViewport();
+		//SnipHUD->AddToViewport();
+		//ControllerOwner->InitUIData();
 		//SceneCameraViewPlane->SetHiddenInGame(false, true);
 		//Scope->SetHiddenInGame(false, true);
 		

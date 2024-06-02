@@ -61,6 +61,9 @@ private:
 	class UASMainGameWidget* CurMainHUDWidget;
 
 	UPROPERTY()
+	class UASMainGameWidget* SnipHUD;
+
+	UPROPERTY()
 	class AASCharacterBase* ControllerOwner;
 
 	UPROPERTY()
