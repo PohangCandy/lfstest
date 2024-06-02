@@ -54,22 +54,26 @@ void UASMainGameWidget::NativeConstruct()
 
 void UASMainGameWidget::UpdatePlayerState()
 {
+	if (HpBar != nullptr)
 	//HpBar->SetPercent(CurrentPlayerState->GetPlayerHpratio());
 	HpBar->SetPercent(CurrentPlayerBase->GetHpratio());
 }
 
 void UASMainGameWidget::UpdateBulletUI()
 {
+	if (BulletNumUI != nullptr)
 	BulletNumUI->SetText(FText::FromString(FString::FromInt(CurrentPlayerBase->GetBulletNum())));
 }
 
 void UASMainGameWidget::UpdateMagazineUI()
 {
+	if (MagazineNum != nullptr)
 	MagazineNum->SetText(FText::FromString(FString::FromInt(CurrentPlayerBase->GetMagazineNum())));
 }
 
 void UASMainGameWidget::UpdateItemUI()
 {
+	if (ItemNum != nullptr)
 	ItemNum->SetText(FText::FromString(FString::FromInt(CurrentPlayerBase->GetItemNum())));
 }
 
