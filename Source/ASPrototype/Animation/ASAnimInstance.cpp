@@ -12,9 +12,16 @@ UASAnimInstance::UASAnimInstance()
 	DoSniping = false;
 
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> ATTACK_MONTAGE(TEXT("/Game/ASPrototype/Animation/PlayerAttackMontage.PlayerAttackMontage"));
+    //static ConstructorHelpers::FObjectFinder<UAnimMontage> ATTACK_MONTAGE(TEXT("/Game/ASPrototype/Animation/PlayerAttackMontage.PlayerAttackMontage"));
 	if (ATTACK_MONTAGE.Succeeded())
 	{
 		AttackMontage = ATTACK_MONTAGE.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> RELOAD_MONTAGE(TEXT("/Game/ASPrototype/Animation/PlayerReloadMontage.PlayerReloadMontage"));
+	if (RELOAD_MONTAGE.Succeeded())
+	{
+		SnipReloadMontage = RELOAD_MONTAGE.Object;
 	}
 
 }
@@ -55,6 +62,14 @@ void UASAnimInstance::PlayAttackMontage()
 	if (!Montage_IsPlaying(AttackMontage))
 	{
 		Montage_Play(AttackMontage,1.0f);
+	}
+}
+
+void UASAnimInstance::PlaySnipReloadMontage()
+{
+	if (!Montage_IsPlaying(SnipReloadMontage))
+	{
+		Montage_Play(SnipReloadMontage, 1.0f);
 	}
 }
 

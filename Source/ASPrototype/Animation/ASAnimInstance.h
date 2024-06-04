@@ -23,9 +23,14 @@ public:
 
 	void PlayAttackMontage();
 
+	void PlaySnipReloadMontage();
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player,Meta = (AllowPrivateAccess = true))
 	UAnimMontage* AttackMontage;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Reload,Meta = (AllowPrivateAccess = true))
+	UAnimMontage* SnipReloadMontage;
 
 protected:
 	virtual void NativeInitializeAnimation() override;

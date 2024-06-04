@@ -230,22 +230,27 @@ void AASCharacterBase::Reload()
 	int i = 0;
 	if (lastMagazineNum > 0)
 	{	
-		UE_LOG(AS, Warning, TEXT("Reload fuc Start"));
+		//UE_LOG(AS, Warning, TEXT("Reload fuc Start"));
 		int ReloadableBulletNum = MaxBulletNum - GetBulletNum();
 		//GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Red, FString::Printf(TEXT("bullet : %d"), ReloadableBulletNum));
 		//GEngine->AddOnScreenDebugMessage(-1,4.0f,FColor::Red, FString::Printf(TEXT("bullet : %d"), lastMagazineNum - (MaxBulletNum - GetBulletNum())));
 		//if (lastMagazineNum - (MaxBulletNum - GetBulletNum()) < 0)
 		//if ((lastMagazineNum - (MaxBulletNum - GetBulletNum())) < 0)
+		auto PlayerAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
+		if (PlayerAnimInstance != nullptr)
+		{
+			PlayerAnimInstance->PlaySnipReloadMontage();
+		}
 		if (lastMagazineNum - ReloadableBulletNum < 0)
 		{
-			UE_LOG(AS, Warning, TEXT("Reload if Start"));
+			//UE_LOG(AS, Warning, TEXT("Reload if Start"));
 			SetBulletNum(GetBulletNum() + lastMagazineNum);
 			SetMagazineNum(0);
-			UE_LOG(AS, Warning,TEXT("Set lastMagazineNum zero"));
+			//UE_LOG(AS, Warning,TEXT("Set lastMagazineNum zero"));
 		}
 		else
 		{
-			UE_LOG(AS, Warning, TEXT("Reload else Start"));
+			//UE_LOG(AS, Warning, TEXT("Reload else Start"));
 			lastMagazineNum = GetMagazineNum() - ReloadableBulletNum;
 			SetMagazineNum(lastMagazineNum);
 			SetBulletNum(MaxBulletNum);

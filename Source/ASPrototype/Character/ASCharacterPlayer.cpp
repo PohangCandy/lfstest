@@ -250,7 +250,8 @@ void AASCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 
 
-	PlayerInputComponent->BindAction(TEXT("Reload"), EInputEvent::IE_Pressed, this, &AASCharacterPlayer::PlayReloadAnimation);
+	//PlayerInputComponent->BindAction(TEXT("Reload"), EInputEvent::IE_Pressed, this, &AASCharacterPlayer::PlayReloadAnimation);
+	PlayerInputComponent->BindAction(TEXT("Reload"), EInputEvent::IE_Pressed, this, &AASCharacterBase::Reload);
 	PlayerInputComponent->BindAction(TEXT("Heal"), EInputEvent::IE_Pressed, this, &AASCharacterBase::Heal);
 	PlayerInputComponent->BindAction(TEXT("GetDamage"), EInputEvent::IE_Pressed, this, &AASCharacterBase::TestingGetDamage);
 	PlayerInputComponent->BindAction(TEXT("GetItem"), EInputEvent::IE_Pressed, this, &AASCharacterPlayer::GripItem);
@@ -520,6 +521,7 @@ void AASCharacterPlayer::PlayShootAnimation()
 void AASCharacterPlayer::PlayReloadAnimation()
 {
 	if (!AnimInstance->Montage_IsPlaying(ReloadMontage))
+	//if (!AnimInstance->Montage_IsPlaying(reloadmonta))
 	{
 		Reload();
 		AnimInstance->Montage_Play(ReloadMontage);
