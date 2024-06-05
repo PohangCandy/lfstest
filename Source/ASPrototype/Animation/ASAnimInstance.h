@@ -21,16 +21,30 @@ public:
 
 	void SwitchSnipAnim();
 
-	void PlayAttackMontage();
+	void PlaySniperRifle_Zoom_AttackMontage();
 
-	void PlaySnipReloadMontage();
+	void PlaySniperRifle_Zoom_ReloadMontage();
+
+	bool CanPlayFireMontage();
+	bool CanPlayReloadMontage();
+
+	UAnimMontage* GetCurFireMontage();
+	void SetFireMontage(UAnimMontage* newMontage);
+
+	void SetReloadMontage(UAnimMontage* newMontage);
 
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player,Meta = (AllowPrivateAccess = true))
-	UAnimMontage* AttackMontage;
+	UAnimMontage* SniperRifle_Basic_FireMontage;
+	UAnimMontage* SniperRifle_Basic_ReloadMontage;
+	UAnimMontage* SniperRifle_Zoom_FireMontage;
+	UAnimMontage* SniperRifle_Zoom_ReloadMontage;
 
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Reload,Meta = (AllowPrivateAccess = true))
-	UAnimMontage* SnipReloadMontage;
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Montage,Meta = (AllowPrivateAccess = true))
+	UAnimMontage* CurFireMontage;
+
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Montage, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* CurReloadMontage;
 
 protected:
 	virtual void NativeInitializeAnimation() override;

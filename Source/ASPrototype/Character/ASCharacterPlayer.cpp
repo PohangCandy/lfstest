@@ -183,6 +183,15 @@ void AASCharacterPlayer::Tick(float DeltaTime)
 	UpdateSoundRange();
 }
 
+void AASCharacterPlayer::Fire()
+{
+	if (CanFire())
+	{
+		AttackCheck();
+	}
+	ConsumeBullet();
+}
+
 bool AASCharacterPlayer::GetBoolItemNearby()
 {
 	return isItemNearby;
@@ -238,8 +247,8 @@ void AASCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	UE_LOG(LogTemp,Warning,TEXT("SetUPInput"));
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	
-	//PlayerInputComponent->BindAction(TEXT("Shoot"), EInputEvent::IE_Pressed, this, &AASCharacterBase::Shoot);
-	PlayerInputComponent->BindAction(TEXT("Shoot"), EInputEvent::IE_Pressed, this, &AASCharacterPlayer::PlayShootAnimation);
+	//PlayerInputComponent->BindAction(TEXT("Shoot"), EInputEvent::IE_Pressed, this, &AASCharacterBase::ConsumeBullet);
+	PlayerInputComponent->BindAction(TEXT("Shoot"), EInputEvent::IE_Pressed, this, &AASCharacterPlayer::Fire);
 	//PlayerInputComponent->BindAction(TEXT("SceneChange"), EInputEvent::IE_Pressed, playerController, &AASPlayerController::UIScreenChange);
 	//PlayerInputComponent->BindAction(TEXT("SceneChange"), EInputEvent::IE_Pressed, this, &AASPlayerController::UIScreenChange);
 	
@@ -512,7 +521,7 @@ void AASCharacterPlayer::PlayShootAnimation()
 	if (!AnimInstance->Montage_IsPlaying(AttackMontage))
 	{
 		PlaySound(ShootSound);
-		Shoot();
+		ConsumeBullet();
 		AttackCheck();
 		AnimInstance->Montage_Play(AttackMontage);
 	}

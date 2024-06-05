@@ -11,18 +11,36 @@ UASAnimInstance::UASAnimInstance()
 	JumpeThreadshold = 30.0f;
 	DoSniping = false;
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> ATTACK_MONTAGE(TEXT("/Game/ASPrototype/Animation/PlayerAttackMontage.PlayerAttackMontage"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> ATTACK_MONTAGE(TEXT("/Game/ASPrototype/Animation/Zoom_SniperRifle_AttackMontage.Zoom_SniperRifle_AttackMontage"));
     //static ConstructorHelpers::FObjectFinder<UAnimMontage> ATTACK_MONTAGE(TEXT("/Game/ASPrototype/Animation/PlayerAttackMontage.PlayerAttackMontage"));
+	///Script/Engine.AnimMontage'/Game/ASPrototype/Animation/Zoom_SniperRifle_AttackMontage.Zoom_SniperRifle_AttackMontage'
 	if (ATTACK_MONTAGE.Succeeded())
 	{
-		AttackMontage = ATTACK_MONTAGE.Object;
+		SniperRifle_Zoom_FireMontage = ATTACK_MONTAGE.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> RELOAD_MONTAGE(TEXT("/Game/ASPrototype/Animation/PlayerReloadMontage.PlayerReloadMontage"));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> RELOAD_MONTAGE(TEXT("/Game/ASPrototype/Animation/Zoom_SniperRifle_ReloadMontage.Zoom_SniperRifle_ReloadMontage"));
+	///Script/Engine.AnimMontage'/Game/ASPrototype/Animation/Zoom_SniperRifle_ReloadMontage.Zoom_SniperRifle_ReloadMontage'
 	if (RELOAD_MONTAGE.Succeeded())
 	{
-		SnipReloadMontage = RELOAD_MONTAGE.Object;
+		SniperRifle_Zoom_ReloadMontage = RELOAD_MONTAGE.Object;
 	}
+
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> SNIPERRIFLE_BASIC_FIREMONTAGE(TEXT("/Game/ASPrototype/Animation/SniperRifle_Basic_FireMontage.SniperRifle_Basic_FireMontage"));
+	if (SNIPERRIFLE_BASIC_FIREMONTAGE.Succeeded())
+	{
+		SniperRifle_Basic_FireMontage = SNIPERRIFLE_BASIC_FIREMONTAGE.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> SNIPERRIFLE_BASIC_RELOADMONTAGE(TEXT("/Game/ASPrototype/Animation/SniperRifle_Basic_ReloadMontage.SniperRifle_Basic_ReloadMontage"));
+	if (SNIPERRIFLE_BASIC_RELOADMONTAGE.Succeeded())
+	{
+		SniperRifle_Basic_ReloadMontage = SNIPERRIFLE_BASIC_RELOADMONTAGE.Object;
+	}
+
+	CurFireMontage = SniperRifle_Basic_FireMontage;
+	CurReloadMontage = SniperRifle_Basic_ReloadMontage;
 
 }
 
@@ -53,24 +71,53 @@ void UASAnimInstance::SwitchSnipAnim()
 	if (DoSniping)
 	{
 		DoSniping = false;
+		SetFireMontage(SniperRifle_Basic_FireMontage);
+		SetReloadMontage(SniperRifle_Basic_ReloadMontage);
 	}
-	else DoSniping = true;
+	else
+	{
+		DoSniping = true;
+		SetFireMontage(SniperRifle_Zoom_FireMontage);
+		SetReloadMontage(SniperRifle_Zoom_ReloadMontage);
+	}
 }
 
-void UASAnimInstance::PlayAttackMontage()
+void UASAnimInstance::PlaySniperRifle_Zoom_AttackMontage()
 {
-	if (!Montage_IsPlaying(AttackMontage))
+	Montage_Play(CurFireMontage, 1.0f);
+}
+
+void UASAnimInstance::PlaySniperRifle_Zoom_ReloadMontage()
+{
+	if (!Montage_IsPlaying(SniperRifle_Zoom_ReloadMontage))
 	{
-		Montage_Play(AttackMontage,1.0f);
+		Montage_Play(SniperRifle_Zoom_ReloadMontage, 1.0f);
 	}
 }
 
-void UASAnimInstance::PlaySnipReloadMontage()
+bool UASAnimInstance::CanPlayFireMontage()
 {
-	if (!Montage_IsPlaying(SnipReloadMontage))
-	{
-		Montage_Play(SnipReloadMontage, 1.0f);
-	}
+	return !Montage_IsPlaying(CurFireMontage);
+}
+
+bool UASAnimInstance::CanPlayReloadMontage()
+{
+	return !Montage_IsPlaying(CurReloadMontage);
+}
+
+UAnimMontage* UASAnimInstance::GetCurFireMontage()
+{
+	return CurFireMontage;
+}
+
+void UASAnimInstance::SetFireMontage(UAnimMontage* newMontage)
+{
+	CurFireMontage = newMontage;
+}
+
+void UASAnimInstance::SetReloadMontage(UAnimMontage* newMontage)
+{
+	CurReloadMontage = newMontage;
 }
 
 //임시 함수

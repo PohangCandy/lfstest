@@ -213,13 +213,19 @@ void AASCharacterBase::SetState(State NewState)
 	animinstance->StateHandler(NewState);
 }
 
-void AASCharacterBase::Shoot()
+void AASCharacterBase::ConsumeBullet()
 {
 	//int lastBulletNum = GetBulletNum();
-	int lastBulletNum = CurBulletNum;
-	if (lastBulletNum > 0)
+	if (CanFire())
 	{
-		SetBulletNum(lastBulletNum - 1);
+		PlaySound(ShootSound);
+		auto ASAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
+		if (ASAnimInstance != nullptr)
+		{
+			ASAnimInstance->PlaySniperRifle_Zoom_AttackMontage();
+			//ASAnimInstance->Montage_Play(AttackMontage, 1.0f);
+		}
+		SetBulletNum(CurBulletNum - 1);
 	}
 	NumBulletChanged.Broadcast();
 }
@@ -239,7 +245,7 @@ void AASCharacterBase::Reload()
 		auto PlayerAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
 		if (PlayerAnimInstance != nullptr)
 		{
-			PlayerAnimInstance->PlaySnipReloadMontage();
+			PlayerAnimInstance->PlaySniperRifle_Zoom_ReloadMontage();
 		}
 		if (lastMagazineNum - ReloadableBulletNum < 0)
 		{
@@ -351,6 +357,17 @@ void AASCharacterBase::ZoomIn()
 void AASCharacterBase::PlaySound(USoundBase* sound)
 {
 	UGameplayStatics::PlaySoundAtLocation(this, sound, GetActorLocation());
+}
+
+bool AASCharacterBase::CanFire()
+{
+	auto ASAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
+	bool canFire;
+	if (ASAnimInstance != nullptr)
+	{
+		canFire = ASAnimInstance->CanPlayFireMontage();
+	}
+	return CurBulletNum > 0 && canFire;
 }
 
 void AASCharacterBase::BeginPlay()

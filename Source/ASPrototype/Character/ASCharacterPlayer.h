@@ -85,6 +85,8 @@ private:
 	bool isItemNearby;
 	bool CanMove;
 
+	void Fire();
+
 public:
 	bool GetBoolItemNearby();
 	void SetBoolItemNearby(bool newboolen);

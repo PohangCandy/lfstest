@@ -66,7 +66,7 @@ public:
 
 
 	void SetState(State NewState);
-	void Shoot();
+	void ConsumeBullet();
 	void Reload();
 	void Heal();
 	void TestingGetDamage();
@@ -94,6 +94,10 @@ public:
 	void PlaySound(USoundBase* sound);
 	class USoundBase* WalkSound;
 	class USoundBase* ShootSound;
+
+	//bool CanFire();
+protected:
+	bool CanFire();
 
 protected:
 	virtual void BeginPlay() override;
