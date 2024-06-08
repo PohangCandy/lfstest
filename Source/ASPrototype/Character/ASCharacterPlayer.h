@@ -12,6 +12,14 @@
 /**
  * 
  */
+UENUM()
+enum class PlayerAnimState
+{
+	Idle,
+	Fire,
+	Reload,
+	Heal
+};
 
 
 
@@ -64,10 +72,14 @@ private:
 	TObjectPtr<class UASWeaponData> Weapon1;
 	TObjectPtr<class UASWeaponData> Weapon2;
 	int BulletRange;
+	PlayerAnimState CurAnimState;
+
 public:
 	void ChangeWeaponMesh(UASWeaponData* NewWeaponData);
 	void PlayShootAnimation();
 	void PlayReloadAnimation();
+
+	void SetPlayerAnimState(PlayerAnimState newState);
 private:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);

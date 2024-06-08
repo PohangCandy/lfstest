@@ -151,6 +151,8 @@ AASCharacterPlayer::AASCharacterPlayer()
 		}
 		WeaponAttachment->SetupAttachment(GetMesh(), WeaponAttachmentSocket);
 		BulletRange = 1000;
+
+		CurAnimState = PlayerAnimState::Idle;
 	}
 	
 
@@ -185,11 +187,15 @@ void AASCharacterPlayer::Tick(float DeltaTime)
 
 void AASCharacterPlayer::Fire()
 {
-	if (CanFire())
+	if (CurAnimState == PlayerAnimState::Idle)
 	{
-		AttackCheck();
+		if (CanFire())
+		{
+			CurAnimState = PlayerAnimState::Fire;
+			AttackCheck();
+		}
+		ConsumeBullet();
 	}
-	ConsumeBullet();
 }
 
 bool AASCharacterPlayer::GetBoolItemNearby()
@@ -535,6 +541,11 @@ void AASCharacterPlayer::PlayReloadAnimation()
 		Reload();
 		AnimInstance->Montage_Play(ReloadMontage);
 	}
+}
+
+void AASCharacterPlayer::SetPlayerAnimState(PlayerAnimState newState)
+{
+	CurAnimState = newState;
 }
 
 //움직임 구현
