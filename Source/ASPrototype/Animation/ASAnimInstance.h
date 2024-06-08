@@ -21,7 +21,7 @@ public:
 
 	void SwitchSnipAnim();
 
-	void PlaySniperRifle_Zoom_AttackMontage();
+	void PlaySniperRifle_AttackMontage();
 
 	void PlaySniperRifle_Zoom_ReloadMontage();
 

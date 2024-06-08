@@ -98,6 +98,12 @@ private:
 	bool CanMove;
 
 	void Fire();
+	bool CheckCanFire();
+	
+	//void Reload();
+
+	UFUNCTION()
+	void WhenMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 public:
 	bool GetBoolItemNearby();

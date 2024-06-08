@@ -99,6 +99,7 @@ void AASCharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	//OnHpChanged.Broadcast();
+	AnimInstance = GetMesh()->GetAnimInstance();
 }
 
 void AASCharacterBase::SetDead()
@@ -216,21 +217,21 @@ void AASCharacterBase::SetState(State NewState)
 void AASCharacterBase::ConsumeBullet()
 {
 	//int lastBulletNum = GetBulletNum();
-	if (CanFire())
+	if (CanFire()) // bullet > 0, playerstate = idle
 	{
-		PlaySound(ShootSound);
-		auto ASAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
-		if (ASAnimInstance != nullptr)
-		{
-			ASAnimInstance->PlaySniperRifle_Zoom_AttackMontage();
-			//ASAnimInstance->Montage_Play(AttackMontage, 1.0f);
-		}
+		//PlaySound(ShootSound);
+		//auto ASAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
+		//if (ASAnimInstance != nullptr)
+		//{
+		//	ASAnimInstance->PlaySniperRifle_AttackMontage();
+		//	//ASAnimInstance->Montage_Play(AttackMontage, 1.0f);
+		//}
 		SetBulletNum(CurBulletNum - 1);
 	}
-	NumBulletChanged.Broadcast();
+	//NumBulletChanged.Broadcast();
 }
 
-void AASCharacterBase::Reload()
+void AASCharacterBase::RechargeBullet()
 {
 	int lastMagazineNum = GetMagazineNum();
 	int i = 0;

@@ -67,7 +67,7 @@ public:
 
 	void SetState(State NewState);
 	void ConsumeBullet();
-	void Reload();
+	void RechargeBullet();
 	void Heal();
 	void TestingGetDamage();
 	void InitUIData();

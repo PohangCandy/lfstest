@@ -82,7 +82,7 @@ void UASAnimInstance::SwitchSnipAnim()
 	}
 }
 
-void UASAnimInstance::PlaySniperRifle_Zoom_AttackMontage()
+void UASAnimInstance::PlaySniperRifle_AttackMontage()
 {
 	Montage_Play(CurFireMontage, 1.0f);
 }

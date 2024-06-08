@@ -187,6 +187,19 @@ void AASCharacterPlayer::Tick(float DeltaTime)
 
 void AASCharacterPlayer::Fire()
 {
+	if (CheckCanFire())
+	{
+		CurAnimState = PlayerAnimState::Fire;
+		ConsumeBullet();
+		PlaySound(ShootSound);
+		auto ASAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
+		if (ASAnimInstance != nullptr)
+		{
+			ASAnimInstance->PlaySniperRifle_AttackMontage();
+			//ASAnimInstance->Montage_Play(AttackMontage, 1.0f);
+		}
+		AttackCheck();
+	}
 	if (CurAnimState == PlayerAnimState::Idle)
 	{
 		if (CanFire())
@@ -196,6 +209,18 @@ void AASCharacterPlayer::Fire()
 		}
 		ConsumeBullet();
 	}
+	NumBulletChanged.Broadcast();
+}
+
+bool AASCharacterPlayer::CheckCanFire()
+{
+	return GetBulletNum() > 0 && CurAnimState == PlayerAnimState::Idle;
+}
+
+void AASCharacterPlayer::WhenMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	UE_LOG(AS, Warning, TEXT("Set State Idle"));
+	CurAnimState = PlayerAnimState::Idle;
 }
 
 bool AASCharacterPlayer::GetBoolItemNearby()
@@ -212,6 +237,7 @@ void AASCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 	AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->OnMontageEnded.AddDynamic(this, &AASCharacterPlayer::WhenMontageEnded);
 	FName WeaponSocket(TEXT("hand_rSocket"));
 	auto CurWeapon = GetWorld()->SpawnActor<AASWeapon>(FVector::ZeroVector, FRotator::ZeroRotator);
 	if (CurWeapon != nullptr)
@@ -265,7 +291,7 @@ void AASCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 
 	//PlayerInputComponent->BindAction(TEXT("Reload"), EInputEvent::IE_Pressed, this, &AASCharacterPlayer::PlayReloadAnimation);
-	PlayerInputComponent->BindAction(TEXT("Reload"), EInputEvent::IE_Pressed, this, &AASCharacterBase::Reload);
+	PlayerInputComponent->BindAction(TEXT("Reload"), EInputEvent::IE_Pressed, this, &AASCharacterBase::RechargeBullet);
 	PlayerInputComponent->BindAction(TEXT("Heal"), EInputEvent::IE_Pressed, this, &AASCharacterBase::Heal);
 	PlayerInputComponent->BindAction(TEXT("GetDamage"), EInputEvent::IE_Pressed, this, &AASCharacterBase::TestingGetDamage);
 	PlayerInputComponent->BindAction(TEXT("GetItem"), EInputEvent::IE_Pressed, this, &AASCharacterPlayer::GripItem);
@@ -295,6 +321,8 @@ void AASCharacterPlayer::PostInitializeComponents()
 	ItemCheckSphere->OnComponentEndOverlap.AddDynamic(this, &AASCharacterPlayer::OutItemOverlap);
 	//ItemCheckSphere->OnComponentBeginOverlap.AddDynamic(this, OnItemOverlap);
 	UE_LOG(AS, Warning, TEXT("Character Check Item"));
+
+	/*AnimInstance->OnMontageEnded.AddDynamic(this, &AASCharacterPlayer::OnAttackMontageEnded);*/
 }
 
 void AASCharacterPlayer::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -537,7 +565,7 @@ void AASCharacterPlayer::PlayReloadAnimation()
 	if (!AnimInstance->Montage_IsPlaying(ReloadMontage))
 	//if (!AnimInstance->Montage_IsPlaying(reloadmonta))
 	{
-		Reload();
+		RechargeBullet();
 		AnimInstance->Montage_Play(ReloadMontage);
 	}
 }
@@ -550,7 +578,8 @@ void AASCharacterPlayer::SetPlayerAnimState(PlayerAnimState newState)
 //움직임 구현
 void AASCharacterPlayer::Move(const FInputActionValue& Value) 
 {
-	if (!AnimInstance->Montage_IsPlaying(AttackMontage) && !AnimInstance->Montage_IsPlaying(ReloadMontage))
+	//if (!AnimInstance->Montage_IsPlaying(AttackMontage) && !AnimInstance->Montage_IsPlaying(ReloadMontage))
+	if (CurAnimState == PlayerAnimState::Idle)
 	{
 		FVector2D MovementVector = Value.Get<FVector2D>();
 
