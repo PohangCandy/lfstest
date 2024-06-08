@@ -54,6 +54,7 @@ public:
 	int GetBulletNum();
 	int GetMagazineNum();
 	int GetItemNum();
+	int GetReloadableBullet();
 	int GetStrength();
 	float GetHpratio();
 	void SetHp(int Hp);

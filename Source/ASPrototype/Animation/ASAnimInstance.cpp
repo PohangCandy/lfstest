@@ -87,12 +87,9 @@ void UASAnimInstance::PlaySniperRifle_AttackMontage()
 	Montage_Play(CurFireMontage, 1.0f);
 }
 
-void UASAnimInstance::PlaySniperRifle_Zoom_ReloadMontage()
+void UASAnimInstance::PlaySniperRifle_ReloadMontage()
 {
-	if (!Montage_IsPlaying(SniperRifle_Zoom_ReloadMontage))
-	{
-		Montage_Play(SniperRifle_Zoom_ReloadMontage, 1.0f);
-	}
+	Montage_Play(CurReloadMontage, 1.0f);
 }
 
 bool UASAnimInstance::CanPlayFireMontage()

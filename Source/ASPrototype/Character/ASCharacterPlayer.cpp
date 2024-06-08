@@ -192,22 +192,8 @@ void AASCharacterPlayer::Fire()
 		CurAnimState = PlayerAnimState::Fire;
 		ConsumeBullet();
 		PlaySound(ShootSound);
-		auto ASAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
-		if (ASAnimInstance != nullptr)
-		{
-			ASAnimInstance->PlaySniperRifle_AttackMontage();
-			//ASAnimInstance->Montage_Play(AttackMontage, 1.0f);
-		}
+		PlayFireMontage();	
 		AttackCheck();
-	}
-	if (CurAnimState == PlayerAnimState::Idle)
-	{
-		if (CanFire())
-		{
-			CurAnimState = PlayerAnimState::Fire;
-			AttackCheck();
-		}
-		ConsumeBullet();
 	}
 	NumBulletChanged.Broadcast();
 }
@@ -215,6 +201,21 @@ void AASCharacterPlayer::Fire()
 bool AASCharacterPlayer::CheckCanFire()
 {
 	return GetBulletNum() > 0 && CurAnimState == PlayerAnimState::Idle;
+}
+
+void AASCharacterPlayer::Reload()
+{
+	if (CheckCanReload())
+	{
+		CurAnimState = PlayerAnimState::Reload;
+		RechargeBullet();
+		PlayReloadMontage();
+	}
+}
+
+bool AASCharacterPlayer::CheckCanReload()
+{
+	return CurAnimState == PlayerAnimState::Idle;
 }
 
 void AASCharacterPlayer::WhenMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -291,7 +292,8 @@ void AASCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 
 	//PlayerInputComponent->BindAction(TEXT("Reload"), EInputEvent::IE_Pressed, this, &AASCharacterPlayer::PlayReloadAnimation);
-	PlayerInputComponent->BindAction(TEXT("Reload"), EInputEvent::IE_Pressed, this, &AASCharacterBase::RechargeBullet);
+	//PlayerInputComponent->BindAction(TEXT("Reload"), EInputEvent::IE_Pressed, this, &AASCharacterBase::RechargeBullet);
+	PlayerInputComponent->BindAction(TEXT("Reload"), EInputEvent::IE_Pressed, this, &AASCharacterPlayer::Reload);
 	PlayerInputComponent->BindAction(TEXT("Heal"), EInputEvent::IE_Pressed, this, &AASCharacterBase::Heal);
 	PlayerInputComponent->BindAction(TEXT("GetDamage"), EInputEvent::IE_Pressed, this, &AASCharacterBase::TestingGetDamage);
 	PlayerInputComponent->BindAction(TEXT("GetItem"), EInputEvent::IE_Pressed, this, &AASCharacterPlayer::GripItem);
@@ -536,6 +538,26 @@ void AASCharacterPlayer::ChangeWeapon1()
 void AASCharacterPlayer::ChangeWeapon2()
 {
 	ChangeWeaponMesh(Weapon2);
+}
+
+void AASCharacterPlayer::PlayFireMontage()
+{
+
+	auto ASAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
+	if (ASAnimInstance != nullptr)
+	{
+		ASAnimInstance->PlaySniperRifle_AttackMontage();
+		//ASAnimInstance->Montage_Play(AttackMontage, 1.0f);
+	}
+}
+
+void AASCharacterPlayer::PlayReloadMontage()
+{
+	auto PlayerAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
+	if (PlayerAnimInstance != nullptr)
+	{
+		PlayerAnimInstance->PlaySniperRifle_ReloadMontage();
+	}
 }
 
 void AASCharacterPlayer::ChangeWeaponMesh(UASWeaponData* NewWeaponData)

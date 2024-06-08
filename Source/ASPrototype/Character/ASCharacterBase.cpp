@@ -142,6 +142,22 @@ int AASCharacterBase::GetItemNum()
 	return CurItemNum;
 }
 
+int AASCharacterBase::GetReloadableBullet()
+{
+	if (GetMagazineNum() > 0)
+	{
+		if (GetMagazineNum() - (MaxBulletNum - GetBulletNum()) < 0)
+		{
+			return GetMagazineNum();
+		}
+		else
+		{
+			return MaxBulletNum - GetBulletNum();
+		}
+	}
+	return 0;
+}
+
 int AASCharacterBase::GetStrength()
 {
 	return Curstrength;
@@ -216,55 +232,48 @@ void AASCharacterBase::SetState(State NewState)
 
 void AASCharacterBase::ConsumeBullet()
 {
-	//int lastBulletNum = GetBulletNum();
-	if (CanFire()) // bullet > 0, playerstate = idle
-	{
-		//PlaySound(ShootSound);
-		//auto ASAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
-		//if (ASAnimInstance != nullptr)
-		//{
-		//	ASAnimInstance->PlaySniperRifle_AttackMontage();
-		//	//ASAnimInstance->Montage_Play(AttackMontage, 1.0f);
-		//}
-		SetBulletNum(CurBulletNum - 1);
-	}
+	SetBulletNum(CurBulletNum - 1);
 	//NumBulletChanged.Broadcast();
 }
 
 void AASCharacterBase::RechargeBullet()
 {
-	int lastMagazineNum = GetMagazineNum();
-	int i = 0;
-	if (lastMagazineNum > 0)
-	{	
-		//UE_LOG(AS, Warning, TEXT("Reload fuc Start"));
-		int ReloadableBulletNum = MaxBulletNum - GetBulletNum();
-		//GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Red, FString::Printf(TEXT("bullet : %d"), ReloadableBulletNum));
-		//GEngine->AddOnScreenDebugMessage(-1,4.0f,FColor::Red, FString::Printf(TEXT("bullet : %d"), lastMagazineNum - (MaxBulletNum - GetBulletNum())));
-		//if (lastMagazineNum - (MaxBulletNum - GetBulletNum()) < 0)
-		//if ((lastMagazineNum - (MaxBulletNum - GetBulletNum())) < 0)
-		auto PlayerAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
-		if (PlayerAnimInstance != nullptr)
-		{
-			PlayerAnimInstance->PlaySniperRifle_Zoom_ReloadMontage();
-		}
-		if (lastMagazineNum - ReloadableBulletNum < 0)
-		{
-			//UE_LOG(AS, Warning, TEXT("Reload if Start"));
-			SetBulletNum(GetBulletNum() + lastMagazineNum);
-			SetMagazineNum(0);
-			//UE_LOG(AS, Warning,TEXT("Set lastMagazineNum zero"));
-		}
-		else
-		{
-			//UE_LOG(AS, Warning, TEXT("Reload else Start"));
-			lastMagazineNum = GetMagazineNum() - ReloadableBulletNum;
-			SetMagazineNum(lastMagazineNum);
-			SetBulletNum(MaxBulletNum);
-		}
-		//GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Red, FString::Printf(TEXT("bullet : %d"), i));
-	}
-	
+	//int lastMagazineNum = GetMagazineNum();
+	//int i = 0;
+	//if (lastMagazineNum > 0)
+	//{	
+	//	//UE_LOG(AS, Warning, TEXT("Reload fuc Start"));
+	//	int ReloadableBulletNum = MaxBulletNum - GetBulletNum();
+	//	//GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Red, FString::Printf(TEXT("bullet : %d"), ReloadableBulletNum));
+	//	//GEngine->AddOnScreenDebugMessage(-1,4.0f,FColor::Red, FString::Printf(TEXT("bullet : %d"), lastMagazineNum - (MaxBulletNum - GetBulletNum())));
+	//	//if (lastMagazineNum - (MaxBulletNum - GetBulletNum()) < 0)
+	//	//if ((lastMagazineNum - (MaxBulletNum - GetBulletNum())) < 0)
+	//	auto PlayerAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
+	//	if (PlayerAnimInstance != nullptr)
+	//	{
+	//		PlayerAnimInstance->PlaySniperRifle_Zoom_ReloadMontage();
+	//	}
+	//	if (lastMagazineNum - ReloadableBulletNum < 0)
+	//	{
+	//		//UE_LOG(AS, Warning, TEXT("Reload if Start"));
+	//		SetBulletNum(GetBulletNum() + lastMagazineNum);
+	//		SetMagazineNum(0);
+	//		//UE_LOG(AS, Warning,TEXT("Set lastMagazineNum zero"));
+	//	}
+	//	else
+	//	{
+	//		//UE_LOG(AS, Warning, TEXT("Reload else Start"));
+	//		lastMagazineNum = GetMagazineNum() - ReloadableBulletNum;
+	//		SetMagazineNum(lastMagazineNum);
+	//		SetBulletNum(MaxBulletNum);
+	//	}
+
+	//	//GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Red, FString::Printf(TEXT("bullet : %d"), i));
+	//}
+
+	CurBulletNum += GetReloadableBullet();
+	CurMagazineNum -= GetReloadableBullet();
+
 	NumBulletChanged.Broadcast();
 	NumMagazineChanged.Broadcast();
 }

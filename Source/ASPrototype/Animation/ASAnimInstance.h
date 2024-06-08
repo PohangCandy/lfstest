@@ -23,7 +23,7 @@ public:
 
 	void PlaySniperRifle_AttackMontage();
 
-	void PlaySniperRifle_Zoom_ReloadMontage();
+	void PlaySniperRifle_ReloadMontage();
 
 	bool CanPlayFireMontage();
 	bool CanPlayReloadMontage();

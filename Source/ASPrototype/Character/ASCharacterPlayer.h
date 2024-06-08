@@ -73,6 +73,8 @@ private:
 	TObjectPtr<class UASWeaponData> Weapon2;
 	int BulletRange;
 	PlayerAnimState CurAnimState;
+	void PlayFireMontage();
+	void PlayReloadMontage();
 
 public:
 	void ChangeWeaponMesh(UASWeaponData* NewWeaponData);
@@ -100,7 +102,8 @@ private:
 	void Fire();
 	bool CheckCanFire();
 	
-	//void Reload();
+	void Reload();
+	bool CheckCanReload();
 
 	UFUNCTION()
 	void WhenMontageEnded(UAnimMontage* Montage, bool bInterrupted);
