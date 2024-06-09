@@ -218,6 +218,11 @@ bool AASCharacterPlayer::CheckCanReload()
 	return CurAnimState == PlayerAnimState::Idle;
 }
 
+void AASCharacterPlayer::hurt()
+{
+	SetPlayerAnimState(PlayerAnimState::Hurt);
+}
+
 void AASCharacterPlayer::WhenMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	UE_LOG(AS, Warning, TEXT("Set State Idle"));
@@ -609,11 +614,23 @@ void AASCharacterPlayer::SetPlayerAnimState(PlayerAnimState newState)
 	{
 		AnimInstance->StopAllMontages(0.0f);
 	}
+
+	if (newState == PlayerAnimState::Hurt)
+	{
+		//AnimInstance->StopAllMontages(0.0f); //it curse idle state 
+		auto ASAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
+		if (ASAnimInstance != nullptr)
+		{
+			ASAnimInstance->Play_Hurt_ByGun_Montage();
+			//ASAnimInstance->Montage_Play(AttackMontage, 1.0f);
+		}
+	}
+
 }
 
 void AASCharacterPlayer::WhenPlayerGotDamaged()
 {
-	SetPlayerAnimState(PlayerAnimState::Idle);
+	SetPlayerAnimState(PlayerAnimState::Hurt);
 }
 
 //움직임 구현

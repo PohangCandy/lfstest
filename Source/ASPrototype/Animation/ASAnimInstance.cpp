@@ -39,7 +39,7 @@ UASAnimInstance::UASAnimInstance()
 		SniperRifle_Basic_ReloadMontage = SNIPERRIFLE_BASIC_RELOADMONTAGE.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> HURTMONTAGE(TEXT(""));
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> HURTMONTAGE(TEXT("/Game/ASPrototype/Animation/GotDamaged_ByGun_Montage.GotDamaged_ByGun_Montage"));
 	if (HURTMONTAGE.Succeeded())
 	{
 		Hurt_ByGun_Montage = HURTMONTAGE.Object;

@@ -109,6 +109,8 @@ private:
 	void Reload();
 	bool CheckCanReload();
 
+	void hurt();
+
 	UFUNCTION()
 	void WhenMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
