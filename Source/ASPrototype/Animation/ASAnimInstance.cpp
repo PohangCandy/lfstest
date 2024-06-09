@@ -39,9 +39,15 @@ UASAnimInstance::UASAnimInstance()
 		SniperRifle_Basic_ReloadMontage = SNIPERRIFLE_BASIC_RELOADMONTAGE.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> HURTMONTAGE(TEXT(""));
+	if (HURTMONTAGE.Succeeded())
+	{
+		Hurt_ByGun_Montage = HURTMONTAGE.Object;
+	}
+
 	CurFireMontage = SniperRifle_Basic_FireMontage;
 	CurReloadMontage = SniperRifle_Basic_ReloadMontage;
-
+	CurHurtMontage = Hurt_ByGun_Montage;
 }
 
 void UASAnimInstance::StateHandler(State NewState)
@@ -90,6 +96,11 @@ void UASAnimInstance::PlaySniperRifle_AttackMontage()
 void UASAnimInstance::PlaySniperRifle_ReloadMontage()
 {
 	Montage_Play(CurReloadMontage, 1.0f);
+}
+
+void UASAnimInstance::Play_Hurt_ByGun_Montage()
+{
+	Montage_Play(CurHurtMontage, 1.0f);
 }
 
 bool UASAnimInstance::CanPlayFireMontage()

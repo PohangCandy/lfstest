@@ -25,6 +25,8 @@ public:
 
 	void PlaySniperRifle_ReloadMontage();
 
+	void Play_Hurt_ByGun_Montage();
+
 	bool CanPlayFireMontage();
 	bool CanPlayReloadMontage();
 
@@ -38,6 +40,7 @@ private:
 	UAnimMontage* SniperRifle_Basic_ReloadMontage;
 	UAnimMontage* SniperRifle_Zoom_FireMontage;
 	UAnimMontage* SniperRifle_Zoom_ReloadMontage;
+	UAnimMontage* Hurt_ByGun_Montage;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Montage,Meta = (AllowPrivateAccess = true))
 	UAnimMontage* CurFireMontage;
@@ -45,6 +48,9 @@ private:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Montage, Meta = (AllowPrivateAccess = true))
 	UAnimMontage* CurReloadMontage;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = Montage, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* CurHurtMontage;
 
 protected:
 	virtual void NativeInitializeAnimation() override;

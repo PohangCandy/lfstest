@@ -18,7 +18,8 @@ enum class PlayerAnimState
 	Idle,
 	Fire,
 	Reload,
-	Heal
+	Heal,
+	Hurt
 };
 
 
@@ -75,13 +76,16 @@ private:
 	PlayerAnimState CurAnimState;
 	void PlayFireMontage();
 	void PlayReloadMontage();
+	void PlayHurtMontage();
 
 public:
 	void ChangeWeaponMesh(UASWeaponData* NewWeaponData);
-	void PlayShootAnimation();
-	void PlayReloadAnimation();
+	//void PlayShootAnimation();
+	//void PlayReloadAnimation();
 
 	void SetPlayerAnimState(PlayerAnimState newState);
+	void WhenPlayerGotDamaged();
+
 private:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);

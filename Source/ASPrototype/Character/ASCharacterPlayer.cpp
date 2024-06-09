@@ -325,6 +325,7 @@ void AASCharacterPlayer::PostInitializeComponents()
 	UE_LOG(AS, Warning, TEXT("Character Check Item"));
 
 	/*AnimInstance->OnMontageEnded.AddDynamic(this, &AASCharacterPlayer::OnAttackMontageEnded);*/
+	OnHpChanged.AddUObject(this, &AASCharacterPlayer::WhenPlayerGotDamaged);
 }
 
 void AASCharacterPlayer::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -560,6 +561,15 @@ void AASCharacterPlayer::PlayReloadMontage()
 	}
 }
 
+void AASCharacterPlayer::PlayHurtMontage()
+{
+	auto PlayerAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
+	if (PlayerAnimInstance != nullptr)
+	{
+		PlayerAnimInstance->Play_Hurt_ByGun_Montage();
+	}
+}
+
 void AASCharacterPlayer::ChangeWeaponMesh(UASWeaponData* NewWeaponData)
 {
 	if (NewWeaponData)
@@ -571,30 +581,39 @@ void AASCharacterPlayer::ChangeWeaponMesh(UASWeaponData* NewWeaponData)
 	}
 }
 
-void AASCharacterPlayer::PlayShootAnimation()
-{
-	if (!AnimInstance->Montage_IsPlaying(AttackMontage))
-	{
-		PlaySound(ShootSound);
-		ConsumeBullet();
-		AttackCheck();
-		AnimInstance->Montage_Play(AttackMontage);
-	}
-}
-
-void AASCharacterPlayer::PlayReloadAnimation()
-{
-	if (!AnimInstance->Montage_IsPlaying(ReloadMontage))
-	//if (!AnimInstance->Montage_IsPlaying(reloadmonta))
-	{
-		RechargeBullet();
-		AnimInstance->Montage_Play(ReloadMontage);
-	}
-}
+//void AASCharacterPlayer::PlayShootAnimation()
+//{
+//	if (!AnimInstance->Montage_IsPlaying(AttackMontage))
+//	{
+//		PlaySound(ShootSound);
+//		ConsumeBullet();
+//		AttackCheck();
+//		AnimInstance->Montage_Play(AttackMontage);
+//	}
+//}
+//
+//void AASCharacterPlayer::PlayReloadAnimation()
+//{
+//	if (!AnimInstance->Montage_IsPlaying(ReloadMontage))
+//	//if (!AnimInstance->Montage_IsPlaying(reloadmonta))
+//	{
+//		RechargeBullet();
+//		AnimInstance->Montage_Play(ReloadMontage);
+//	}
+//}
 
 void AASCharacterPlayer::SetPlayerAnimState(PlayerAnimState newState)
 {
 	CurAnimState = newState;
+	if (newState == PlayerAnimState::Idle)
+	{
+		AnimInstance->StopAllMontages(0.0f);
+	}
+}
+
+void AASCharacterPlayer::WhenPlayerGotDamaged()
+{
+	SetPlayerAnimState(PlayerAnimState::Idle);
 }
 
 //움직임 구현
