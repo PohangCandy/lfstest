@@ -208,7 +208,7 @@ void AASCharacterBase::GetDamaged(int damage)
 		SetDead();
 	}
 
-	OnHpChanged.Broadcast();
+	//OnHpChanged.Broadcast();
 }
 
 void AASCharacterBase::SetStrength(int newStrength)

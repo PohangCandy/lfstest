@@ -215,7 +215,7 @@ void AASCharacterPlayer::Reload()
 
 bool AASCharacterPlayer::CheckCanReload()
 {
-	return CurAnimState == PlayerAnimState::Idle;
+	return GetReloadableBullet() > 0 && CurAnimState == PlayerAnimState::Idle;
 }
 
 void AASCharacterPlayer::hurt()
@@ -226,7 +226,17 @@ void AASCharacterPlayer::hurt()
 void AASCharacterPlayer::WhenMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	UE_LOG(AS, Warning, TEXT("Set State Idle"));
-	CurAnimState = PlayerAnimState::Idle;
+	//CurAnimState = PlayerAnimState::Idle; 
+	//if (CurAnimState == PlayerAnimState::Hurt)
+	//{
+	//	UE_LOG(AS, Warning, TEXT("%s"), CurAnimState);
+	//}
+	//else {
+	//	SetPlayerAnimState(PlayerAnimState::Idle);
+	//}
+	
+	SetPlayerAnimState(PlayerAnimState::Idle);
+	//UE_LOG(AS, Warning, TEXT("%s"),CurAnimState);
 }
 
 bool AASCharacterPlayer::GetBoolItemNearby()
@@ -612,7 +622,9 @@ void AASCharacterPlayer::SetPlayerAnimState(PlayerAnimState newState)
 	CurAnimState = newState;
 	if (newState == PlayerAnimState::Idle)
 	{
-		AnimInstance->StopAllMontages(0.0f);
+		auto ASAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
+		ASAnimInstance->StopAllMontages(0.0f);
+		//AnimInstance->StopAllMontages(0.0f);
 	}
 
 	if (newState == PlayerAnimState::Hurt)
@@ -621,6 +633,7 @@ void AASCharacterPlayer::SetPlayerAnimState(PlayerAnimState newState)
 		auto ASAnimInstance = Cast<UASAnimInstance>(GetMesh()->GetAnimInstance());
 		if (ASAnimInstance != nullptr)
 		{
+			UE_LOG(AS, Warning, TEXT("Check Shoot Montage End"));
 			ASAnimInstance->Play_Hurt_ByGun_Montage();
 			//ASAnimInstance->Montage_Play(AttackMontage, 1.0f);
 		}
