@@ -51,20 +51,35 @@
 <a href="https://www.figma.com/design/96yMo6HbDTwvgvhsNtRZyD/Sniper-Elite?node-id=0-1&t=cPLs9rgKckOMBE9u-1" target="blank"><img align="center" src="https://i.namu.wiki/i/tyR9148Wphjb2F4cAstF0NdEfTnxF5gEmmMzzjPmNzF7u7gwmk2D3USUfjJ3JA-nrvkZQAynHevRmGyrm7ciU3rdiV-rxeS2CQk_15tnzhMfVScDbzl4aMQBerHC5vZPXCT_ihMWrHh7QVBbHk3LNQ.svg" alt="Figma" height="27" width="20" /></a> [Figma 프로토타입](https://www.figma.com/design/96yMo6HbDTwvgvhsNtRZyD/Sniper-Elite?node-id=0-1&t=cPLs9rgKckOMBE9u-1)  
 ![Group 24](https://github.com/PohangCandy/lfstest/assets/130345776/9eb35bae-527f-460e-868b-cf10f25a2fbe)
 
-* **Figma** : 피그마를 통해 기존의 CCG게임  **UI 분석** 후 프로젝트 UI 기획, **컴포넌트 기능**을 활용해 자주 쓰는 UI의 **재사용성** 높임. **ProtoType**을 수행하며 클래스 다이어그래임으로 생각해내지 못한 기획을 자세하게 수정.
+* **Figma** : 기존 TPS 게임 분석, UI 기획, **컴포넌트 기능**과 **프로토타입 기능** 활용 -> 기획 추가, 수정에 용이  
 
-* **UGUI** : 피그마에서 작성한 기획 내용을 바탕으로 구현. 배경, 오브젝트 배치 시 **Layer**를 확실하게 분리해주기 위한 카메라 설정 작업 수행
+* **UMG** : **UserWidget 클래스**를 상속받은 WidgetBluePrint로 UI 배치 및 구현, 해당 UI를 UserWidget 생성시 GetWidgetfromName매서드로 찾아옴.  
+플레이어의 데이터가 바뀔 때마다 수정되도록 **델리게이트**로 연결  
+**시각적 효과**를 더하기위해 파티클과 미디어 플레이어도 적극 사용
 
-#### 2. Enemy
-![Group 22](https://github.com/PohangCandy/Slayer-Unity-/assets/130345776/a12aaddc-f7e4-422f-90e9-b87b0d22adde)
 
-* **턴 계산** : 플레이어 턴과 Enemy 턴에 따라 각 버프/디버프의 남은 **지속 시간**을 업데이트
-**성능적 효율**을 위해 Update문을 쓰지 않고 턴 업데이트, 상태 전환 시 해당 지속 효과 업데이트하도록 리팩토링.
+#### 2. Player
+![Group 25](https://github.com/PohangCandy/lfstest/assets/130345776/4cde8aa5-310e-4636-a4a3-f62347c64624)  
 
-* **행동 패턴** : **FSM**을 사용해서 공격, 방어, 버프, 디버프 4가지 상태 구현. 각 상태가 끝날때마다 머리 위로 **다음 상태 예고**하도록 업데이트.
+* **HFSM** : 적과의 상호작용, 많은 키 입력으로 상태 변화 -> 플레이어가 가지는 3인칭 시점과 1인칭 시점을 크게 분류하고 공통된 기능들이 **반복**되어서 HFSM으로 리팩토링. 조건문을 줄이기 위해 상태를 객체화시켜서 **StatePattern**으로 리팩토링 중.
 
-* **버프/디버프** : **Static 클래스**를 개별적으로 만들어 플레이어가 카드, 포션, 유물 등을 사용해서 Enemy 객체에 각기 다른 동작을 취할 수 있도록 만듬.
+각 상태별로 일어나는 변화, 동작을 **델리게이트**를 통해서 이벤트 처리함으로써 각 액터와 컴포넌트 간 개방성을 줄이고 **캡슐화**.
+ex) 애니메이션 몽타주가 끝날 때 발생하는 AnimMontageEnded 델리게이트에 SetIdleState() 연결하므로써 Tick함수 사용을 줄이고 상태 전환 실현. 
 
+
+![Group 26](https://github.com/PohangCandy/lfstest/assets/130345776/e9dd486d-17da-4954-85d9-4b801e0a77ae)  
+
+* **Aiming View**, **UpperBody Rotation**  : 스코프 맺히는 사물의 상이 마우스 스크롤에 의해 확대되고, 축소될수 있도록 **PostProcessVolume**을 활용하여 Aiming View를 구현. 해상도가 떨어진다고 느껴  **Scene Capture Camera **사용 방법을 배워서 이를 구현.  
+  저격 시 마우스를 회전하면 캐릭터의 허리 부위가 회전해서 상체만 돌아갈 수 있도록 구현.  
+
+* **Head Shot**: TPS 게임에 흔히 있는 헤드샷을 구현. SkelatalMesh의 **Collision Channel**에 접근해서 트레이스 라인에 맞은 BoneName 정보 얻음. 
+
+
+#### 2. Item
+![Group 27](https://github.com/PohangCandy/lfstest/assets/130345776/f1c16be7-f9ea-4b8f-9f53-197764091649)  
+
+플레이어에게 **Colider**를 두어 충돌한 아이템의 이펙트와 이름을 나타내는 함수를 실행시키도록 구현  
+아이템 수집 시 UI에 반영
 
 ---
 ## 프로젝트 후기
