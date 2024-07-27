@@ -222,11 +222,6 @@ bool AASCharacterBase::AttackCheck()
 	return false;
 }
 
-FVector AASCharacterBase::GetPlayerLocation()
-{
-	return GetActorLocation();
-}
-
 
 void AASCharacterBase::SetState(State NewState)
 {

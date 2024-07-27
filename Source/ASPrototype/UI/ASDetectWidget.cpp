@@ -38,14 +38,12 @@ void UASDetectWidget::WidgetOn()
 {
 	DetectBar->SetVisibility(ESlateVisibility::Visible);
 	Timeline.Play();
-	WidgetTriggerDelegate.Broadcast();
 }
 
 void UASDetectWidget::WidgetOff()
 {
 	DetectBar->SetVisibility(ESlateVisibility::Hidden);
 	Timeline.Stop();
-	WidgetTriggerDelegate.Broadcast();
 }
 
 
@@ -57,7 +55,6 @@ void UASDetectWidget::BlinkBar()
 	BindToAnimationFinished(Blink, EndDelegate);
 	PlayAnimation(Blink, Min, 3);
 	FullPercentDelegate.Broadcast();
-	WidgetTriggerDelegate.Broadcast();
 }
 
 

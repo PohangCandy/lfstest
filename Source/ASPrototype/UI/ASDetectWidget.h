@@ -24,7 +24,6 @@ class ASPROTOTYPE_API UASDetectWidget : public UASUserWidget
 public:
 	FWidgetAnimationDynamicEvent EndDelegate;
 	FOnFullPercentDelegate FullPercentDelegate;
-	FOnWidgetTriggerDelegate WidgetTriggerDelegate;
 	FOnAlertDelegate AlertDelegate;
 	UFUNCTION()
 	void WidgetOff();

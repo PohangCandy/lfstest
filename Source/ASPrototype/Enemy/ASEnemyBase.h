@@ -62,7 +62,7 @@ private:
 	int MaxHp;
 	int CurHp;
 	int Damage;
-	class IASCharacterInterface* Player;
+	AActor* Target;
 	bool IsPlayerInRange;
 	void SetIsPlayerInRange();
 	float GetPlayerAngleValue();

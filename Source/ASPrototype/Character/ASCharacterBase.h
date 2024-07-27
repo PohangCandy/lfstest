@@ -66,7 +66,6 @@ public:
 	void SetStrength(int newStrength);
 	bool AttackCheck();
 
-	virtual FVector GetPlayerLocation() override;
 
 	void SetState(State NewState);
 	void ConsumeBullet();

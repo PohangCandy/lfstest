@@ -191,7 +191,6 @@ void AASEnemyBase::BeginPlay()
 	ensure(DetectWidget); ensure(BBData);
 
 	DetectWidget->FullPercentDelegate.AddUObject(this, &AASEnemyBase::FoundTarget);
-	DetectWidget->WidgetTriggerDelegate.AddUObject(this, &AASEnemyBase::SetIsPlayerInRange);
 	DetectWidget->AlertDelegate.AddUObject(this, &AASEnemyBase::SuspectTarget);
 	Animinstance = Cast<UASAIAnimInstance>(GetMesh()->GetAnimInstance());
 }
@@ -260,11 +259,11 @@ void AASEnemyBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
 
 FVector AASEnemyBase::GetTargetLocation()
 {
-	if (Player == nullptr)
+	if (Target == nullptr)
 	{
 		return FVector(0,0,0);
 	}
-	return Player->GetPlayerLocation();
+	return Target->GetActorLocation();
 }
 
 void AASEnemyBase::FoundTarget()
@@ -286,7 +285,7 @@ void AASEnemyBase::SetIsPlayerInRange()
 float AASEnemyBase::GetPlayerAngleValue()
 {
 	FRotator ControlRotator = GetControlRotation();
-	FVector PlayerLoc = Player->GetPlayerLocation();
+	FVector PlayerLoc = Target->GetActorLocation();
 	FVector EnemyLoc = GetActorLocation();
 	
 	FRotator ControllerRotator = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetControlRotation();
@@ -324,7 +323,7 @@ void AASEnemyBase::TurnToTarget(FVector Position)
 	FVector TargetLocation;
 	if (BBData->GetBB_IsDetect())
 	{
-		TargetLocation = Player->GetPlayerLocation();
+		TargetLocation = Target->GetActorLocation();
 	}
 	else
 	{
@@ -360,7 +359,7 @@ void AASEnemyBase::TurnToTarget(FVector Position)
 void AASEnemyBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (Player && IsPlayerInRange)
+	if (IsPlayerInRange)
 	{
 		DetectWidget->SetAngle(GetPlayerAngleValue());
 	}
@@ -486,17 +485,19 @@ void AASEnemyBase::CheckPlayer(AActor* player)
 	// 플레이어가 아니거나 , 플레이어를 탐지한 경우 예외처리
 	IASCharacterInterface* CheckingPlayer = Cast<IASCharacterInterface>(player);
 	if (CheckingPlayer == NULL || BBData == NULL) { return; }
+	Target = player;
 	if (BBData->GetBB_IsDetect()) { return; }
-	Player = CheckingPlayer;
 	if (BBData->GetBB_Target())
 	{
 		BBData->SetBB_Target(nullptr); //나가야 하는 상황 
 		DetectWidget->DecreaseDetection();
+		IsPlayerInRange = false;
 	}
 	else
 	{
 		BBData->SetBB_Target(player); //들어가야 하는 상황
 		DetectWidget->IncreaseDetection();
+		IsPlayerInRange = true;
 	}
 }
 
