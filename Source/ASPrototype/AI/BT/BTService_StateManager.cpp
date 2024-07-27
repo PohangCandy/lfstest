@@ -26,12 +26,28 @@ void UBTService_StateManager::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 	{
 		return;
 	}
+
+
 	IGetSetBlackBoardDataInterface* BlackBoard = Cast<IGetSetBlackBoardDataInterface>(ControllingPawn->GetController());
 	if (BlackBoard == nullptr)
 	{
 		return;
 	}
 
+	if (BlackBoard->GetBB_IsAlert())
+	{
+		state = 1;
+	}
+	else if (BlackBoard->GetBB_IsDetect())
+	{
+		state = 2;
+	}
+	else 
+	{
+		state = 0;
+	}
+	
+	Enemy->OnChangeStateDelegate.Broadcast(state);
 }
 
 

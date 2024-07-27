@@ -6,6 +6,8 @@
 #include "UObject/Interface.h"
 #include "ASEnemyInterface.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnChangeStateDelegate, uint8 /*state*/);
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UASEnemyInterface : public UInterface
@@ -25,4 +27,6 @@ public:
 	virtual AActor* GetPatrolPath()=0;
 	virtual FVector GetTargetLocation() = 0;
 	virtual void TurnToTarget(FVector Position) = 0;
+	FOnChangeStateDelegate OnChangeStateDelegate;
+
 };

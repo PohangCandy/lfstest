@@ -15,7 +15,6 @@ UBTTask_Combat::UBTTask_Combat()
 
 EBTNodeResult::Type UBTTask_Combat::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {	
-
 	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
 	if (ControllingPawn == nullptr)
 	{
@@ -28,7 +27,6 @@ EBTNodeResult::Type UBTTask_Combat::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 		return EBTNodeResult::Failed;
 	}
 
-
 	//Enemy->PlayAttackAnimation();
 	//Enemy->CurState = EState::Attack;
 	
@@ -37,7 +35,6 @@ EBTNodeResult::Type UBTTask_Combat::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	//ANIM->
 	return EBTNodeResult::Succeeded;
 }
-
 
 //
 //void UBTTask_Combat::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)

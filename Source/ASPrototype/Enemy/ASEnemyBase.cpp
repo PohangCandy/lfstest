@@ -34,8 +34,7 @@
 #include "Interface/ASCharacterInterface.h"
 #include "Kismet/KismetMathLibrary.h" //charactor moving
 
-//네비게이션
-#include "NavigationSystem.h"
+#include "NavigationSystem.h"	//네비게이션
 
 // Sets default values
 AASEnemyBase::AASEnemyBase()
@@ -192,6 +191,7 @@ void AASEnemyBase::BeginPlay()
 
 	DetectWidget->FullPercentDelegate.AddUObject(this, &AASEnemyBase::FoundTarget);
 	DetectWidget->AlertDelegate.AddUObject(this, &AASEnemyBase::SuspectTarget);
+	OnChangeStateDelegate.AddUObject(this, &AASEnemyBase::SetState);
 	Animinstance = Cast<UASAIAnimInstance>(GetMesh()->GetAnimInstance());
 }
 
@@ -268,11 +268,13 @@ FVector AASEnemyBase::GetTargetLocation()
 
 void AASEnemyBase::FoundTarget()
 {
+	BBData->SetBB_IsAlert(false);
 	BBData->SetBB_IsDetect(true);
 }
 
 void AASEnemyBase::SuspectTarget()
 {
+	if (BBData->GetBB_IsDetect()) return;
 	BBData->SetBB_IsAlert(true);
 }
 
@@ -376,9 +378,9 @@ void AASEnemyBase::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 }
 
-void AASEnemyBase::SetState(EState NewState)
+void AASEnemyBase::SetState(uint8 NewState)
 {
-	CurState = NewState;
+	CurState = (EState)NewState;
 	SetStateAnimation(CurState);
 }
 
@@ -396,22 +398,26 @@ void AASEnemyBase::SetStateAnimation(EState NewState)
 		//WeaponInfo->WeaponModel->SetHiddenInGame(true);
 		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 		//AiRef->RangeSizeDown();
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Idle")));
 		break;
 	case EState::Alert:
 		EquipWeapon(Weapon2);
-		GetCharacterMovement()->MaxWalkSpeed = 150.0f;
+		GetCharacterMovement()->MaxWalkSpeed = 150.0f; 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Alert")));
 		break;
 	case EState::Attack:
 		//WeaponInfo->WeaponModel->SetHiddenInGame(false);
-		GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = RunSpeed; 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Attack")));
 		//AiRef->RangeSizeUP();
 		break;
 	case EState::Dead:
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Dead")));
 		break;
 
 	default:
 		break;
 	}
+
+
 }
 
 void AASEnemyBase::SetupPerception()

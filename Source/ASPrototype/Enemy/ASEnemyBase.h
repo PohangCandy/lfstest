@@ -23,10 +23,6 @@ enum class EState : uint8
 };
 
 
-
-
-
-
 DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate);
 
 
@@ -148,7 +144,7 @@ protected:
 	//에너미가 적대적인 존재인지 아닌지 판단하기 위해 넣음 
 	//FGenericTeamId TeamId;
 
-	void SetState(EState NewState);
+	void SetState(uint8 NewState);
 	EState GetState();
 
 

@@ -16,7 +16,10 @@ class ASPROTOTYPE_API UBTService_StateManager : public UBTService
 
 public:
 	UBTService_StateManager();
-
+	
 protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
+
+private:
+	uint8 state=0;
 };
