@@ -1,14 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AI/BT/BTService_StateManager.h"
-#include "AI/ASAIController.h"
+#include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Enemy/ASEnemyBase.h"
-#include "Components/WidgetComponent.h"
+#include "Interface/ASEnemyInterface.h"
+#include "Interface/GetSetBlackBoardDataInterface.h"
 
 UBTService_StateManager::UBTService_StateManager()
 {
-	NodeName = TEXT("State_Manager");
+	NodeName = TEXT("StateManager");
 	Interval = 0.5f;
 }
 
@@ -16,24 +16,22 @@ void UBTService_StateManager::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 {	
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
-	AASAIController* AI = Cast<AASAIController>(ControllingPawn->GetController());
-	AASEnemyBase* Enemy = Cast<AASEnemyBase>(ControllingPawn);
-
-	if (AI->GetBB_IsAlert() == true)
+	if (ControllingPawn == nullptr)
 	{
-		Enemy->SetStateAnimation(EState::Alert);
-		Enemy->QuestionMark->SetHiddenInGame(false);
+		return;
 	}
 
-	if (AI->GetBB_IsDetect()==true)
+	IASEnemyInterface* Enemy = Cast<IASEnemyInterface>(ControllingPawn);
+	if (Enemy == nullptr)
 	{
-		Enemy->SetStateAnimation(EState::Chasing);
-		Enemy->QuestionMark->SetHiddenInGame(true);
+		return;
 	}
-	else 
+	IGetSetBlackBoardDataInterface* BlackBoard = Cast<IGetSetBlackBoardDataInterface>(ControllingPawn->GetController());
+	if (BlackBoard == nullptr)
 	{
-		Enemy->SetStateAnimation(EState::Idle);
-	}	
+		return;
+	}
+
 }
 
 

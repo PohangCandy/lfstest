@@ -2,38 +2,40 @@
 
 
 #include "AI/BT/BTTask_Combat.h"
-#include "AI/ASAIController.h"
-#include "AI/ASAI.h"
+#include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Enemy/ASEnemyCharacter.h"
-#include "Animation/ASAIAnimInstance.h"
+#include "Interface/ASEnemyInterface.h"
 
 UBTTask_Combat::UBTTask_Combat()
 {
-	NodeName = TEXT("CombatSystem");
+	NodeName = TEXT("Shooting");
 	bNotifyTick = true;
 	IsPlaying =false;
 }
 
 EBTNodeResult::Type UBTTask_Combat::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {	
-	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
-	Enemy = Cast<AASEnemyCharacter>(ControllingPawn);
-	AI = Cast<AASAIController>(Enemy->GetController());
 
-	if (Enemy==nullptr || AI==nullptr)
+	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
+	if (ControllingPawn == nullptr)
 	{
 		return EBTNodeResult::Failed;
 	}
-	
-	Enemy->PlayAttackAnimation();
-	Enemy->CurState = EState::Attack;
+
+	IASEnemyInterface* Enemy = Cast<IASEnemyInterface>(ControllingPawn);
+	if (Enemy==nullptr)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+
+	//Enemy->PlayAttackAnimation();
+	//Enemy->CurState = EState::Attack;
 	
 	//IsPlaying = true;
 	//Enemy->OnAttackEnd.AddLambda([this]()->void {IsPlaying = false; });
 	//ANIM->
 	return EBTNodeResult::Succeeded;
-
 }
 
 

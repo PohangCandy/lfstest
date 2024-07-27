@@ -2,38 +2,30 @@
 
 
 #include "AI/BT/BTTask_FindLastKnownPostion.h"
-#include "AI/ASAIController.h"
+#include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Enemy/ASEnemyBase.h"
+#include "Interface/ASEnemyInterface.h"
+#include "Interface/GetSetBlackBoardDataInterface.h"
 
 EBTNodeResult::Type UBTTask_FindLastKnownPostion::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
-	AASAIController* AI = Cast<AASAIController>(ControllingPawn->GetController());
-
-	//로밍 시작 
-	if (AI->GetBB_EnableRoaming()==true)
+	if (ControllingPawn == nullptr)
 	{
-		//LastKnownPosition 기준으로 랜덤 위치 얻기 
-		AI->FindNearLocation(AI->LastKnownPosition,1000.0f);
-		return EBTNodeResult::Succeeded;
+		return EBTNodeResult::Failed;
 	}
 
-	switch (AI->Alertlvl)
+	IASEnemyInterface* Enemy = Cast<IASEnemyInterface>(ControllingPawn);
+	if (Enemy == nullptr)
 	{
-	case AlertLvl::Low:
-		AI->SetBB_LastKnownPosition(AI->LastKnownPosition);
-		break;
-
-	case AlertLvl::Medium:
-		AI->FindNearLocation(AI->LastKnownPosition, 400.0f);
-		break;
-	case AlertLvl::High:
-		AI->FindNearLocation(AI->LastKnownPosition, 400.0f);
-		break;
-	default:
-		break;
+		return EBTNodeResult::Failed;
 	}
-	
+	IGetSetBlackBoardDataInterface* BlackBoard = Cast<IGetSetBlackBoardDataInterface>(ControllingPawn->GetController());
+	if (BlackBoard == nullptr)
+	{
+		return EBTNodeResult::Failed;
+	}
+
+	BlackBoard->SetBB_LastKnownPosition(Enemy->GetTargetLocation());
 	return EBTNodeResult::Succeeded;
 }

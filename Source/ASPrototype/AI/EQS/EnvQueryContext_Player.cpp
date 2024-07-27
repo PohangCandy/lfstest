@@ -2,18 +2,17 @@
 
 
 #include "AI/Eqs/EnvQueryContext_Player.h"
-#include "AI/ASAIController.h"
+#include "AIController.h"
 #include "EnvironmentQuery/EnvQueryTypes.h" //FEnvQueryInstance Æ÷ÇÔ
 #include "EnvironmentQuery/Items/EnvQueryItemType_Actor.h" 
 
 void UEnvQueryContext_Player::ProvideContext(FEnvQueryInstance& QueryInstance, FEnvQueryContextData& ContextData) const
 {	
 	Super::ProvideContext(QueryInstance, ContextData);
-	AASAIController * AIRef = Cast<AASAIController>((Cast<AActor>((QueryInstance.Owner).Get())->GetInstigatorController()));
-
-	if (AIRef)
+	AAIController * AI = Cast<AAIController>((Cast<AActor>((QueryInstance.Owner).Get())->GetInstigatorController()));
+	if (AI)
 	{
-		UEnvQueryItemType_Actor::SetContextHelper(ContextData, AIRef->GetPlayer());
+//		UEnvQueryItemType_Actor::SetContextHelper(ContextData, AIRef->GetPlayer());
 	}
 
 }

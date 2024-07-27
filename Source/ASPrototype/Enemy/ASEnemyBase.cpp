@@ -4,18 +4,38 @@
 #include "Enemy/ASEnemyBase.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+
 //BB정보 얻기 위해 
+#include "Interface/GetSetBlackBoardDataInterface.h"
 #include "AI/ASAIController.h"
+#include "AI/ASAI.h"
+
+//UI
 #include "UI/ASDetectWidget.h"
+#include "UI/ASWidgetComponent.h"
+
+//제거 예정 
 #include "Tool/ASWeaponData.h"
 #include "Tool/ASWeaponItem.h"
-#include "Components/WidgetComponent.h"
-#include "Perception/AISense_Touch.h"
 #include "Components/PrimitiveComponent.h"
 #include "Components/AudioComponent.h"
+
+#include "Perception/AISense_Touch.h"
 #include "Kismet/GameplayStatics.h"
 #include "Item/ASItemBox.h"
 #include "Animation/ASAIAnimInstance.h"
+
+//탐지 기능
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISenseConfig_Sight.h" //시야
+#include "Perception/AISenseConfig_Hearing.h" //사운드
+#include "Perception/AISense_Touch.h"//감각
+#include "Perception/AISenseConfig_Touch.h"//감각
+#include "Interface/ASCharacterInterface.h"
+#include "Kismet/KismetMathLibrary.h" //charactor moving
+
+//네비게이션
+#include "NavigationSystem.h"
 
 // Sets default values
 AASEnemyBase::AASEnemyBase()
@@ -32,6 +52,10 @@ AASEnemyBase::AASEnemyBase()
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.f);
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("ASEnemy"));
 
+	//Speed
+	WalkSpeed = 300.0f;
+	RunSpeed = 500.0f;
+
 	//Movement
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
@@ -41,13 +65,27 @@ AASEnemyBase::AASEnemyBase()
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
+	//위젯 2개 생성 이슈->컴포넌트UI 숨기기 해결 
 	//Mesh
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -100.0f), FRotator(0.0f, -90.f, 0.0f));
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
-	GetMesh()->SetCollisionProfileName(TEXT("ASEnemyMesh"));
+	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AASEnemyBase::OnHit);
+
+
 	//Widget
-	QuestionMark = CreateDefaultSubobject<UWidgetComponent>(TEXT("QuestionMarkWidget"));
+	DetectBar = CreateDefaultSubobject<UASWidgetComponent>(TEXT("DetectWidget"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> DetectBarRef(TEXT("/Game/UI/WB_DetectBar_UI.WB_DetectBar_UI_C"));
+	if (DetectBarRef.Class)
+	{
+		DetectBar->SetWidgetClass(DetectBarRef.Class);
+		DetectBar->SetWidgetSpace(EWidgetSpace::Screen);
+		DetectBar->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		DetectBar->SetHiddenInGame(true);
+	}
+
+
+	QuestionMark = CreateDefaultSubobject<UASWidgetComponent>(TEXT("QuestionMarkWidget"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> QuestionMarkRef(TEXT("/Game/UI/WB_QuestionMark_UI.WB_QuestionMark_UI_C"));
 	ensure(QuestionMarkRef.Class);
 	if (QuestionMarkRef.Class)
@@ -62,6 +100,7 @@ AASEnemyBase::AASEnemyBase()
 		QuestionMark->SetHiddenInGame(true);
 	}
 
+	SetupPerception();
 
 	//Stats
 	MaxHp = 100;
@@ -83,9 +122,6 @@ AASEnemyBase::AASEnemyBase()
 		GetMesh()->SetAnimInstanceClass(AnimInstanceClassRef.Class);
 	}
 
-
-
-
 	//Weapon 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CurrentWeapon"));
 	WeaponMesh->SetupAttachment(GetMesh(), FName(TEXT("Weapon_Socket")));
@@ -106,9 +142,6 @@ AASEnemyBase::AASEnemyBase()
 	}
 
 
-	//Speed
-	WalkSpeed = 300.0f;
-	RunSpeed = 500.0f;
 
 
 	//Gun Sound 
@@ -132,6 +165,35 @@ AASEnemyBase::AASEnemyBase()
 	{
 		ItemClass = ItemBPClass.Class;
 	}
+
+	IsPlayerInRange = false;
+
+}
+
+void AASEnemyBase::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+}
+
+AActor* AASEnemyBase::GetPatrolPath()
+{
+	AActor* actor = Cast<AActor>(PatrolPath);
+	return actor;
+}
+
+// Called when the game starts or when spawned
+void AASEnemyBase::BeginPlay()
+{	
+	Super::BeginPlay();
+	BBData = Cast<IGetSetBlackBoardDataInterface>(GetOwner());
+	DetectWidget = Cast<UASDetectWidget>(DetectBar->GetUserWidgetObject());
+	DetectWidget->AddToViewport();
+	ensure(DetectWidget); ensure(BBData);
+
+	DetectWidget->FullPercentDelegate.AddUObject(this, &AASEnemyBase::FoundTarget);
+	DetectWidget->WidgetTriggerDelegate.AddUObject(this, &AASEnemyBase::SetIsPlayerInRange);
+	DetectWidget->AlertDelegate.AddUObject(this, &AASEnemyBase::SuspectTarget);
+	Animinstance = Cast<UASAIAnimInstance>(GetMesh()->GetAnimInstance());
 }
 
 int AASEnemyBase::GetHp()
@@ -191,11 +253,46 @@ void AASEnemyBase::SetDead()
 void AASEnemyBase::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (CurState == EState::Attack) { return; }
-	bool result = AiRef->IsPlayer(OtherActor);
-	if (result)
+	//bool result = AiRef->IsPlayer(OtherActor);
+
+	UAISense_Touch::ReportTouchEvent(GetWorld(), this, OtherActor, NormalImpulse);
+}
+
+FVector AASEnemyBase::GetTargetLocation()
+{
+	if (Player == nullptr)
 	{
-		UAISense_Touch::ReportTouchEvent(GetWorld(), this, OtherActor, NormalImpulse);
+		return FVector(0,0,0);
 	}
+	return Player->GetPlayerLocation();
+}
+
+void AASEnemyBase::FoundTarget()
+{
+	BBData->SetBB_IsDetect(true);
+}
+
+void AASEnemyBase::SuspectTarget()
+{
+	BBData->SetBB_IsAlert(true);
+}
+
+void AASEnemyBase::SetIsPlayerInRange()
+{
+	IsPlayerInRange = !IsPlayerInRange;
+}
+
+//Calculate Angle Value for UI Rotation 
+float AASEnemyBase::GetPlayerAngleValue()
+{
+	FRotator ControlRotator = GetControlRotation();
+	FVector PlayerLoc = Player->GetPlayerLocation();
+	FVector EnemyLoc = GetActorLocation();
+	
+	FRotator ControllerRotator = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetControlRotation();
+	FRotator IntervalRotator = UKismetMathLibrary::FindLookAtRotation(PlayerLoc, EnemyLoc);
+	FRotator AngleRotator = UKismetMathLibrary::NormalizedDeltaRotator(IntervalRotator, ControllerRotator);
+	return AngleRotator.Yaw;
 }
 
 void AASEnemyBase::EquipWeapon(UASWeaponData* NewWeaponData)
@@ -211,7 +308,6 @@ void AASEnemyBase::PlaySound(USoundBase* sound)
 	UGameplayStatics::PlaySoundAtLocation(this, sound, GetActorLocation());
 }
 
-
 void AASEnemyBase::PlayHitReactAnimation()
 {
 	PlayAnimMontage(HitReactMontage);
@@ -222,6 +318,26 @@ void AASEnemyBase::PlayAttackAnimation()
 	const float DelayTime = PlayAnimMontage(AttackMontage);
 	//AttackEnd(DelayTime);
 }
+
+void AASEnemyBase::TurnToTarget(FVector Position)
+{
+	FVector TargetLocation;
+	if (BBData->GetBB_IsDetect())
+	{
+		TargetLocation = Player->GetPlayerLocation();
+	}
+	else
+	{
+		TargetLocation = Position;
+	}
+
+	FRotator RotationDifferenceValue = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetLocation);
+	FRotator ResultValue = FRotator(0.0f, RotationDifferenceValue.Yaw, 0.0f);
+	FRotator RotatorValue = FMath::RInterpTo(GetActorRotation(), ResultValue, GetWorld()->GetDeltaSeconds(), 0.0f);
+	SetActorRotation(RotatorValue);
+}
+
+
 
 //에러발생
 //void AASEnemyBase::AttackEnd(const float InDelayTime)
@@ -240,27 +356,15 @@ void AASEnemyBase::PlayAttackAnimation()
 
 
 
-// Called when the game starts or when spawned
-void AASEnemyBase::BeginPlay()
-{	
-	Super::BeginPlay();
-	AiRef = Cast<AASAIController>(GetOwner());
-	Animinstance = Cast<UASAIAnimInstance>(GetMesh()->GetAnimInstance());
-}
-
 // Called every frame
 void AASEnemyBase::Tick(float DeltaTime)
 {
-	
 	Super::Tick(DeltaTime);
-}
-
-// Called to bind functionality to input
-void AASEnemyBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
+	if (Player && IsPlayerInRange)
+	{
+		DetectWidget->SetAngle(GetPlayerAngleValue());
+	}
+}	
 
 void AASEnemyBase::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const
 {
@@ -271,7 +375,6 @@ void AASEnemyBase::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRota
 void AASEnemyBase::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	
 }
 
 void AASEnemyBase::SetState(EState NewState)
@@ -288,7 +391,6 @@ EState AASEnemyBase::GetState()
 
 void AASEnemyBase::SetStateAnimation(EState NewState)
 {
-	AiRef = Cast<AASAIController>(GetOwner());
 	switch (NewState)
 	{	
 	case EState::Idle:
@@ -300,25 +402,11 @@ void AASEnemyBase::SetStateAnimation(EState NewState)
 		EquipWeapon(Weapon2);
 		GetCharacterMovement()->MaxWalkSpeed = 150.0f;
 		break;
-	case EState::Chasing:
-		//WeaponInfo->WeaponModel->SetHiddenInGame(false);
-		GetCharacterMovement()->MaxWalkSpeed = RunSpeed; // 상태변화에서 가장 의미
-		//AiRef->RangeSizeUP();
-		break;
-
 	case EState::Attack:
 		//WeaponInfo->WeaponModel->SetHiddenInGame(false);
 		GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
-
 		//AiRef->RangeSizeUP();
 		break;
-
-	case EState::Hurt:
-		break;
-
-	case EState::Hidden:
-		break;
-
 	case EState::Dead:
 		break;
 
@@ -327,4 +415,88 @@ void AASEnemyBase::SetStateAnimation(EState NewState)
 	}
 }
 
+void AASEnemyBase::SetupPerception()
+{
+	AIPerComp = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AI Perception Component"));
+
+	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
+	if (SightConfig)
+	{
+		SightConfig->SightRadius = 700.f;
+		SightConfig->LoseSightRadius = SightConfig->SightRadius + 50.f;
+		SightConfig->PeripheralVisionAngleDegrees = 90.f;
+		SightConfig->DetectionByAffiliation.bDetectEnemies = true;
+		SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+		SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+
+		AIPerComp->ConfigureSense(*SightConfig);
+		AIPerComp->SetDominantSense(SightConfig->GetSenseImplementation());
+	}
+	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("Hearing Config"));
+	if (HearingConfig)
+	{
+		HearingConfig->HearingRange = 2000.f;
+		HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
+		HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
+		HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
+
+		AIPerComp->ConfigureSense(*HearingConfig);
+		AIPerComp->SetDominantSense(HearingConfig->GetSenseImplementation());
+	}
+
+	TouchConfig = CreateDefaultSubobject<UAISenseConfig_Touch>(TEXT("Touch Config"));
+	if (TouchConfig)
+	{
+		AIPerComp->ConfigureSense(*TouchConfig);
+		AIPerComp->SetDominantSense(TouchConfig->GetSenseImplementation());
+	}
+
+	AIPerComp->OnTargetPerceptionUpdated.AddDynamic(this, &AASEnemyBase::On_Updated);
+}
+
+void AASEnemyBase::On_Updated(AActor* DetectedPawn, const  FAIStimulus Stimulus)
+{
+	//if (EnemyRef->CurState == EState::Dead) { return; }
+	if (DetectedPawn == nullptr)
+	{
+		return;
+	}
+	auto SensedClass = UAIPerceptionSystem::GetSenseClassForStimulus(this, Stimulus);
+
+	//시야 식별인 경우 
+	if (SensedClass == UAISense_Sight::StaticClass())
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Sight Sense")));
+		CheckPlayer(DetectedPawn);
+	}
+
+	//감각 식별인 경우 
+	else if (SensedClass == UAISense_Touch::StaticClass())
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Touch Sense"))); 
+		BBData->SetBB_IsDetect(true);
+		//터치된 상대가 Player 캐스팅 성공 한 경우, 바로 Player에게 Focus On이 됨. ( UI바 상승 스피드 2배 UP )
+		//캐스팅 된 것이 총알이면 IsDetect==true
+	}
+}
+
+//탐지 상태 관련 
+void AASEnemyBase::CheckPlayer(AActor* player)
+{
+	// 플레이어가 아니거나 , 플레이어를 탐지한 경우 예외처리
+	IASCharacterInterface* CheckingPlayer = Cast<IASCharacterInterface>(player);
+	if (CheckingPlayer == NULL || BBData == NULL) { return; }
+	if (BBData->GetBB_IsDetect()) { return; }
+	Player = CheckingPlayer;
+	if (BBData->GetBB_Target())
+	{
+		BBData->SetBB_Target(nullptr); //나가야 하는 상황 
+		DetectWidget->DecreaseDetection();
+	}
+	else
+	{
+		BBData->SetBB_Target(player); //들어가야 하는 상황
+		DetectWidget->IncreaseDetection();
+	}
+}
 

@@ -13,6 +13,7 @@
 AASEnemyCharacter::AASEnemyCharacter()
 {
 	AIControllerClass = AASAIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 }
 
@@ -23,7 +24,7 @@ float AASEnemyCharacter::TakeDamage(float DamageAmount, struct FDamageEvent cons
 	{
 		return DamageAmount;
 	}
-	UAISense_Touch::ReportTouchEvent(GetWorld(), this, AiRef->GetPlayer(), GetActorLocation());
+	//UAISense_Touch::ReportTouchEvent(GetWorld(), this, AiRef->GetPlayer(), GetActorLocation());
 	PlaySound(HitSound);
 	PlayHitReactAnimation();
 	
@@ -97,19 +98,19 @@ void AASEnemyCharacter::AttackCheck()
 	//DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 1, 0, 1);
 	bool isHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_GameTraceChannel4, CollisionParams); //   EnemyAttack 
 
-	if (OutHit.GetActor() == AiRef->GetPlayer())
-	{
+	//if (OutHit.GetActor() == AiRef->GetPlayer())
+	//{
 
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT(" hitting: %s"),
-			*OutHit.GetActor()->GetName()));
-		OutHit.GetActor()->TakeDamage(10.0f, DamageEvent,GetController(),this);
-		IsPlayer = true;
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT(" hitting: Others ")));
-		IsPlayer = false;
-	}
+	//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT(" hitting: %s"),
+	//		*OutHit.GetActor()->GetName()));
+	//	OutHit.GetActor()->TakeDamage(10.0f, DamageEvent,GetController(),this);
+	//	IsPlayer = true;
+	//}
+	//else
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT(" hitting: Others ")));
+	//	IsPlayer = false;
+	//}
 }
 
 void AASEnemyCharacter::BeginPlay()

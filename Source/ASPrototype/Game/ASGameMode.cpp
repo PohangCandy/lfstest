@@ -124,8 +124,6 @@ void AASGameMode::BeginPlay()
 	Enemy = Cast<AASEnemyBase>(UGameplayStatics::GetActorOfClass(GetWorld(), AASEnemyBase::StaticClass()));
 	ensure(Enemy);
 
-	AI = Cast<AASAIController>(Enemy->GetOwner());
-	ensure(AI);
 }
 
 

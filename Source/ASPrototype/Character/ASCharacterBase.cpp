@@ -9,7 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 //AnimInstanceŬ������ ����
 #include "Animation/ASAnimInstance.h"
-
+#include "Interface/ASAttackCheckInterface.h"
 //사운드 관련
 #include "Components/AudioComponent.h"
 
@@ -220,6 +220,11 @@ bool AASCharacterBase::AttackCheck()
 {
 
 	return false;
+}
+
+FVector AASCharacterBase::GetPlayerLocation()
+{
+	return GetActorLocation();
 }
 
 

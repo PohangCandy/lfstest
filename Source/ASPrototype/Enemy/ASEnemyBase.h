@@ -10,26 +10,28 @@
 //#include "Enemy/PatrolPath.h"
 //각 에너미들을 판별하기 위해 ID값을 넣어줌
 //#include "GenericTeamAgentInterface.h"
-
+#include "Interface/ASEnemyInterface.h"
 #include "ASEnemyBase.generated.h"
 
 UENUM()
-enum class EState
+enum class EState : uint8
 {
 	Idle, 
 	Alert, //의심 상태
-	Chasing, //쫓는 상태
-	Attack, //공격상태 
-	Hurt,  //절뚝거리기
-	Hidden, //숨은 상태
+	Attack, //공격 상태 
 	Dead //사망
-}; 
+};
+
+
+
+
+
 
 DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate);
 
 
 UCLASS()
-class ASPROTOTYPE_API AASEnemyBase : public ACharacter//, public IGenericTeamAgentInterface
+class ASPROTOTYPE_API AASEnemyBase : public ACharacter, public IASEnemyInterface//, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 public:
@@ -37,6 +39,7 @@ public:
 	AASEnemyBase();
 
 	//FOnAttackEndDelegate OnAttackEnd;
+	virtual void PostInitializeComponents() override;
 
 	float SplineSpeed;
 	float DistanceAlongSpline;
@@ -47,23 +50,29 @@ public:
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
+	virtual FVector GetTargetLocation() override;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
 	TSubclassOf<class AASItemBox> ItemClass;
 
 private:
+	void FoundTarget();
+	void SuspectTarget();
 	int MaxHp;
 	int CurHp;
 	int Damage;
-
-
+	class IASCharacterInterface* Player;
+	bool IsPlayerInRange;
+	void SetIsPlayerInRange();
+	float GetPlayerAngleValue();
 public:	
+
 	EState CurState;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 	void SetStateAnimation(EState NewState);
@@ -109,6 +118,7 @@ public:
 
 	class UASAIAnimInstance* Animinstance;
 
+	virtual void TurnToTarget(FVector Position) override;
 
 	//void AttackEnd(const float InDelyTime);
 
@@ -118,13 +128,19 @@ public:
 	//에너미가 적대적인 존재인지 아닌지 판단하기 위해 넣음
 	//virtual FGenericTeamId GetGenericTeamId() const override { return TeamId; }
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Widget)
-	TObjectPtr<class UWidgetComponent> QuestionMark;
+	TObjectPtr<class UASWidgetComponent> QuestionMark;
 
+
+	//UI
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Widget)
+	TObjectPtr<class UASWidgetComponent> DetectBar;
+
+	virtual AActor* GetPatrolPath() override;
 
 
 protected:
-	class AASAIController* AiRef;
-	class UASDetectWidget* UiRef;
+	class IGetSetBlackBoardDataInterface* BBData;
+	class UASDetectWidget* DetectWidget;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -134,6 +150,22 @@ protected:
 
 	void SetState(EState NewState);
 	EState GetState();
+
+
+	// AI Perception
+	UPROPERTY(VisibleDefaultsOnly, Category = Enemy)
+	class UAIPerceptionComponent* AIPerComp;
+	class UAISenseConfig_Sight* SightConfig;
+	class UAISenseConfig_Hearing* HearingConfig;
+	class UAISenseConfig_Touch* TouchConfig;
+
+	//AI 관련
+	UFUNCTION()
+	void On_Updated(AActor* DetectedPawn, const  FAIStimulus Stimulus);
+	
+	void SetupPerception();
+	void CheckPlayer(AActor* P);
+
 
 };
 

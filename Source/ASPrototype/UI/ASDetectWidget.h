@@ -3,9 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include "Blueprint/UserWidget.h"
-#include "AI/ASAIController.h"
+#include "UI/ASUserWidget.h"
+#include "Components/TimelineComponent.h"
 #include "ASDetectWidget.generated.h"
 
 //DECLARE_MULTICAST_DELEGATE_OneParam(FUASDetectWidgetOnChangedSignature, bool b)
@@ -13,51 +12,61 @@
  * 
  */
 
+DECLARE_MULTICAST_DELEGATE(FOnFullPercentDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnWidgetTriggerDelegate);
+DECLARE_MULTICAST_DELEGATE(FOnAlertDelegate);
 
 UCLASS()
-class ASPROTOTYPE_API UASDetectWidget : public UUserWidget
+class ASPROTOTYPE_API UASDetectWidget : public UASUserWidget
 {
 	GENERATED_BODY()
+
 public:
-
 	FWidgetAnimationDynamicEvent EndDelegate;
-
-
-	void Onvisible();
-
+	FOnFullPercentDelegate FullPercentDelegate;
+	FOnWidgetTriggerDelegate WidgetTriggerDelegate;
+	FOnAlertDelegate AlertDelegate;
 	UFUNCTION()
-	void OffVisible();
+	void WidgetOff();
 
+	void WidgetOn();
 	void SetRedColor();
 	void SetPercent(float f);
+
+
 	void BlinkBar();
-	UFUNCTION()
-	/*void RunTimeline(float Value);*/
-	//void StartChasing(bool b);
 
 	void SetAngle(float angle);
 
-	FORCEINLINE AActor* GetOwner() { return Owner; }
-	FORCEINLINE void SetOwner(AActor* newOwner) { Owner = newOwner; }
+	void IncreaseDetection();
+	void DecreaseDetection();
 
-	float CurPercent;
-	float MaxPercent;
-	bool DetectOn;
+	UFUNCTION()
+	void UpdateDetection(float value);
 
 	UPROPERTY(EditAnywhere ,BlueprintReadWrite ,meta = (BindWidgetAnim), Transient)
 	class UWidgetAnimation* Blink;
 
-protected:
-	AActor* Owner;
+	UPROPERTY(EditAnywhere, Category= Speed )
+	float Speed;
 
-	virtual void NativeConstruct() override;
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime);
+	UPROPERTY(EditAnywhere)
+	UCurveFloat* CurveFloat;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	TObjectPtr<class UProgressBar> DetectBar;
 
 
-private:
-	class AASAIController* AiRef;
+protected:
+	virtual void NativeConstruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime);
 
+
+private:
+	//타임라인
+	FTimeline Timeline;
+	float Max;
+	float Min;
+	float CurPercent;
+	bool IsDecrease;
 };

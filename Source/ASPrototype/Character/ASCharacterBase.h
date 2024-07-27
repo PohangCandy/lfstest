@@ -4,6 +4,7 @@
 
 #include "EngineMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interface/ASCharacterInterface.h"
 #include "ASCharacterBase.generated.h"
 
 
@@ -23,7 +24,7 @@ enum class State
 
 
 UCLASS()
-class ASPROTOTYPE_API AASCharacterBase : public ACharacter
+class ASPROTOTYPE_API AASCharacterBase : public ACharacter , public IASCharacterInterface
 {
 	GENERATED_BODY()
 
@@ -65,6 +66,7 @@ public:
 	void SetStrength(int newStrength);
 	bool AttackCheck();
 
+	virtual FVector GetPlayerLocation() override;
 
 	void SetState(State NewState);
 	void ConsumeBullet();
