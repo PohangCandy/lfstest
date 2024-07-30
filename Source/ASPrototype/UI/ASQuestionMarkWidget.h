@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UI/ASUserWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "ASQuestionMarkWidget.generated.h"
 
@@ -10,7 +11,7 @@
  * 
  */
 UCLASS()
-class ASPROTOTYPE_API UASQuestionMarkWidget : public UUserWidget
+class ASPROTOTYPE_API UASQuestionMarkWidget : public UASUserWidget
 {
 	GENERATED_BODY()
 protected:
@@ -18,7 +19,7 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime);
 
-	void OnVisible();
 	UPROPERTY()
-	TObjectPtr<class UTexture2D> QuestionMark;
+	TObjectPtr<class UImage> QuestionMark;
+
 };

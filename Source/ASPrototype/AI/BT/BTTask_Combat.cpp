@@ -9,8 +9,6 @@
 UBTTask_Combat::UBTTask_Combat()
 {
 	NodeName = TEXT("Shooting");
-	bNotifyTick = true;
-	IsPlaying =false;
 }
 
 EBTNodeResult::Type UBTTask_Combat::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -21,18 +19,20 @@ EBTNodeResult::Type UBTTask_Combat::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 		return EBTNodeResult::Failed;
 	}
 
-	IASEnemyInterface* Enemy = Cast<IASEnemyInterface>(ControllingPawn);
-	if (Enemy==nullptr)
+	IASEnemyInterface* EnemyInterface = Cast<IASEnemyInterface>(ControllingPawn);
+	if (EnemyInterface ==nullptr)
 	{
 		return EBTNodeResult::Failed;
 	}
-
-	//Enemy->PlayAttackAnimation();
-	//Enemy->CurState = EState::Attack;
-	
-	//IsPlaying = true;
-	//Enemy->OnAttackEnd.AddLambda([this]()->void {IsPlaying = false; });
-	//ANIM->
+	FOnAttackEndDelegate AttackEndDelegate;
+	AttackEndDelegate.BindLambda(
+		[&]()
+		{
+			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded); 
+		}
+	);
+	EnemyInterface->SetAIAttackDelegate(AttackEndDelegate);
+	EnemyInterface->Attack();
 	return EBTNodeResult::Succeeded;
 }
 

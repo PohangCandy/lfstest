@@ -11,6 +11,7 @@
 //각 에너미들을 판별하기 위해 ID값을 넣어줌
 //#include "GenericTeamAgentInterface.h"
 #include "Interface/ASEnemyInterface.h"
+#include "Interface/ASAIWidgetInterface.h"
 #include "ASEnemyBase.generated.h"
 
 UENUM()
@@ -23,11 +24,9 @@ enum class EState : uint8
 };
 
 
-DECLARE_MULTICAST_DELEGATE(FOnAttackEndDelegate);
-
 
 UCLASS()
-class ASPROTOTYPE_API AASEnemyBase : public ACharacter, public IASEnemyInterface//, public IGenericTeamAgentInterface
+class ASPROTOTYPE_API AASEnemyBase : public ACharacter, public IASEnemyInterface, public IASAIWidgetInterface //, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 public:
@@ -37,40 +36,48 @@ public:
 	//FOnAttackEndDelegate OnAttackEnd;
 	virtual void PostInitializeComponents() override;
 
-	float SplineSpeed;
-	float DistanceAlongSpline;
-
 	int GetHp();
 	void SetHp(int Hp);
 	virtual void SetDead();
+
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
 	virtual FVector GetTargetLocation() override;
+	virtual FOnChangeStateDelegate& GetStateDelegate() override;
+	virtual AActor* GetTarget() override;
+	FOnChangeStateDelegate StateDelegate;
+	FOnAttackEndDelegate AttackEndDelegate;
 
 protected:
+	virtual void AttackCheck();
 	UPROPERTY(EditDefaultsOnly, Category = "Item")
 	TSubclassOf<class AASItemBox> ItemClass;
 
 private:
 	void FoundTarget();
 	void SuspectTarget();
+	virtual void InitState() override;
+
 	int MaxHp;
 	int CurHp;
 	int Damage;
 	AActor* Target;
+	EState CurState;
 	bool IsPlayerInRange;
 	void SetIsPlayerInRange();
 	float GetPlayerAngleValue();
+
 public:	
 
-	EState CurState;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
 	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void Attack() override;
+
 	void SetStateAnimation(EState NewState);
 
 	//TArray<FVector> 값을 가진 Actor 클래스 포인터 
@@ -99,9 +106,6 @@ public:
 	TObjectPtr<class UASWeaponData> Weapon1;
 	TObjectPtr<class UASWeaponData> Weapon2;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = name)
-	FString Name;
-
 	void EquipWeapon(UASWeaponData* NewWeaponData);
 
 	void PlaySound(USoundBase* sound);
@@ -116,7 +120,7 @@ public:
 
 	virtual void TurnToTarget(FVector Position) override;
 
-	//void AttackEnd(const float InDelyTime);
+	void AttackEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded);
 
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
 	//int32 ID = 0;
@@ -132,11 +136,14 @@ public:
 	TObjectPtr<class UASWidgetComponent> DetectBar;
 
 	virtual AActor* GetPatrolPath() override;
-
+	virtual void SetAIAttackDelegate(FOnAttackEndDelegate& OnAttackEndDelegate) override;
+	virtual void SetupDetectWidget(class UASUserWidget* InWidget) override;
+	virtual void SetupAlertWidget(class UASUserWidget* InWidget) override;
 
 protected:
-	class IGetSetBlackBoardDataInterface* BBData;
+	class IGetSetBlackBoardDataInterface* BB;
 	class UASDetectWidget* DetectWidget;
+	class UASQuestionMarkWidget* AlertWidget;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -161,7 +168,6 @@ protected:
 	
 	void SetupPerception();
 	void CheckPlayer(AActor* P);
-
 
 };
 

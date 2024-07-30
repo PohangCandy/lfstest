@@ -13,6 +13,7 @@
 //UI
 #include "UI/ASDetectWidget.h"
 #include "UI/ASWidgetComponent.h"
+#include "UI/ASQuestionMarkWidget.h"
 
 //제거 예정 
 #include "Tool/ASWeaponData.h"
@@ -76,13 +77,9 @@ AASEnemyBase::AASEnemyBase()
 	DetectBar = CreateDefaultSubobject<UASWidgetComponent>(TEXT("DetectWidget"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> DetectBarRef(TEXT("/Game/UI/WB_DetectBar_UI.WB_DetectBar_UI_C"));
 	if (DetectBarRef.Class)
-	{
+{
 		DetectBar->SetWidgetClass(DetectBarRef.Class);
-		DetectBar->SetWidgetSpace(EWidgetSpace::Screen);
-		DetectBar->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		DetectBar->SetHiddenInGame(true);
 	}
-
 
 	QuestionMark = CreateDefaultSubobject<UASWidgetComponent>(TEXT("QuestionMarkWidget"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> QuestionMarkRef(TEXT("/Game/UI/WB_QuestionMark_UI.WB_QuestionMark_UI_C"));
@@ -90,13 +87,12 @@ AASEnemyBase::AASEnemyBase()
 	if (QuestionMarkRef.Class)
 	{
 		QuestionMark->SetWidgetClass(QuestionMarkRef.Class);
-		QuestionMark->SetWidgetSpace(EWidgetSpace::Screen);
+		QuestionMark->SetWidgetSpace(EWidgetSpace::World);
 		QuestionMark->SetDrawSize(FVector2D(30.0f, 30.0f));
 		QuestionMark->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		QuestionMark->SetupAttachment(GetMesh());
 		QuestionMark->AddRelativeRotation(FRotator(0.0f, 0.0f, 90.0f));
 		QuestionMark->SetRelativeLocation(FVector(0.0f, 0.0f, 210.0f));
-		QuestionMark->SetHiddenInGame(true);
 	}
 
 	SetupPerception();
@@ -167,11 +163,21 @@ AASEnemyBase::AASEnemyBase()
 
 	IsPlayerInRange = false;
 
+	StateDelegate.AddUObject(this, &AASEnemyBase::SetState);
+
 }
 
 void AASEnemyBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+	//Montage Setting 
+	Animinstance = Cast<UASAIAnimInstance>(GetMesh()->GetAnimInstance());
+	FOnMontageEnded EndDelegate;
+	EndDelegate.BindUObject(this, &AASEnemyBase::AttackEnd);
+	Animinstance->Montage_SetEndDelegate(EndDelegate, AttackMontage);
+
+	BB = Cast<IGetSetBlackBoardDataInterface>(GetOwner());
+	ensure(BB);
 }
 
 AActor* AASEnemyBase::GetPatrolPath()
@@ -180,19 +186,29 @@ AActor* AASEnemyBase::GetPatrolPath()
 	return actor;
 }
 
+
+void AASEnemyBase::SetAIAttackDelegate(FOnAttackEndDelegate& OnAttackEndDelegate)
+{
+	AttackEndDelegate = OnAttackEndDelegate;
+}
+
+void AASEnemyBase::SetupDetectWidget(UASUserWidget* InWidget)
+{
+	DetectWidget = Cast<UASDetectWidget>(InWidget); 	ensure(DetectWidget);
+	DetectWidget->FullPercentDelegate.AddUObject(this, &AASEnemyBase::FoundTarget);
+	DetectWidget->AlertDelegate.AddUObject(this, &AASEnemyBase::SuspectTarget);
+}
+
+void AASEnemyBase::SetupAlertWidget(UASUserWidget* InWidget)
+{
+	AlertWidget = Cast<UASQuestionMarkWidget>(InWidget); 	ensure(AlertWidget);
+}
+
+
 // Called when the game starts or when spawned
 void AASEnemyBase::BeginPlay()
 {	
 	Super::BeginPlay();
-	BBData = Cast<IGetSetBlackBoardDataInterface>(GetOwner());
-	DetectWidget = Cast<UASDetectWidget>(DetectBar->GetUserWidgetObject());
-	DetectWidget->AddToViewport();
-	ensure(DetectWidget); ensure(BBData);
-
-	DetectWidget->FullPercentDelegate.AddUObject(this, &AASEnemyBase::FoundTarget);
-	DetectWidget->AlertDelegate.AddUObject(this, &AASEnemyBase::SuspectTarget);
-	OnChangeStateDelegate.AddUObject(this, &AASEnemyBase::SetState);
-	Animinstance = Cast<UASAIAnimInstance>(GetMesh()->GetAnimInstance());
 }
 
 int AASEnemyBase::GetHp()
@@ -266,16 +282,39 @@ FVector AASEnemyBase::GetTargetLocation()
 	return Target->GetActorLocation();
 }
 
+FOnChangeStateDelegate& AASEnemyBase::GetStateDelegate()
+{
+	return StateDelegate;
+}
+
+AActor* AASEnemyBase::GetTarget()
+{
+	return Target;
+}
+
+void AASEnemyBase::AttackCheck()
+{
+}
+
 void AASEnemyBase::FoundTarget()
 {
-	BBData->SetBB_IsAlert(false);
-	BBData->SetBB_IsDetect(true);
+	BB->SetBB_IsAlert(false);
+	BB->SetBB_IsDetect(true);
+	AlertWidget->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void AASEnemyBase::SuspectTarget()
 {
-	if (BBData->GetBB_IsDetect()) return;
-	BBData->SetBB_IsAlert(true);
+	if (BB->GetBB_IsDetect()) return;
+	BB->SetBB_IsAlert(true);
+	AlertWidget->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AASEnemyBase::InitState()
+{
+	BB->SetBB_IsAlert(false);
+	BB->SetBB_IsDetect(false);
+	AlertWidget->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void AASEnemyBase::SetIsPlayerInRange()
@@ -316,14 +355,13 @@ void AASEnemyBase::PlayHitReactAnimation()
 
 void AASEnemyBase::PlayAttackAnimation()
 {
-	const float DelayTime = PlayAnimMontage(AttackMontage);
-	//AttackEnd(DelayTime);
+	Animinstance->Montage_Play(AttackMontage);
 }
 
 void AASEnemyBase::TurnToTarget(FVector Position)
 {
 	FVector TargetLocation;
-	if (BBData->GetBB_IsDetect())
+	if (BB->GetBB_IsDetect())
 	{
 		TargetLocation = Target->GetActorLocation();
 	}
@@ -340,20 +378,12 @@ void AASEnemyBase::TurnToTarget(FVector Position)
 
 
 
-//에러발생
-//void AASEnemyBase::AttackEnd(const float InDelayTime)
-//{
-//	FTimerHandle myTimerHandle;
-//	GetWorld()->GetTimerManager().SetTimer(myTimerHandle, FTimerDelegate::CreateLambda([&]()
-//		{
-//			if (AiRef->GetPlayer())
-//			{
-//				OnAttackEnd.Broadcast();
-//			}
-//			// 타이머 초기화
-//			GetWorld()->GetTimerManager().ClearTimer(myTimerHandle);
-//		}), InDelayTime, false);
-//}
+
+void AASEnemyBase::AttackEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
+{
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	AttackEndDelegate.ExecuteIfBound();
+}
 
 
 
@@ -367,6 +397,7 @@ void AASEnemyBase::Tick(float DeltaTime)
 	}
 }	
 
+
 void AASEnemyBase::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const
 {
 	OutLocation = GetMesh()->GetSocketLocation("HeadSocket");
@@ -376,6 +407,12 @@ void AASEnemyBase::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRota
 void AASEnemyBase::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
+}
+
+void AASEnemyBase::Attack()
+{
+	AttackCheck();
+	PlayAttackAnimation();
 }
 
 void AASEnemyBase::SetState(uint8 NewState)
@@ -479,31 +516,41 @@ void AASEnemyBase::On_Updated(AActor* DetectedPawn, const  FAIStimulus Stimulus)
 	else if (SensedClass == UAISense_Touch::StaticClass())
 	{
 		//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Touch Sense"))); 
-		BBData->SetBB_IsDetect(true);
+		BB->SetBB_IsDetect(true);
 		//터치된 상대가 Player 캐스팅 성공 한 경우, 바로 Player에게 Focus On이 됨. ( UI바 상승 스피드 2배 UP )
 		//캐스팅 된 것이 총알이면 IsDetect==true
 	}
 }
 
 //탐지 상태 관련 
-void AASEnemyBase::CheckPlayer(AActor* player)
+void AASEnemyBase::CheckPlayer(AActor* Actor)
 {
 	// 플레이어가 아니거나 , 플레이어를 탐지한 경우 예외처리
-	IASCharacterInterface* CheckingPlayer = Cast<IASCharacterInterface>(player);
-	if (CheckingPlayer == NULL || BBData == NULL) { return; }
-	Target = player;
-	if (BBData->GetBB_IsDetect()) { return; }
-	if (BBData->GetBB_Target())
+	IASCharacterInterface* CheckingPlayer = Cast<IASCharacterInterface>(Actor);
+	if (CheckingPlayer == NULL || BB == NULL) { return; }
+
+	Target = Actor;
+
+	if (BB->GetBB_Target())
 	{
-		BBData->SetBB_Target(nullptr); //나가야 하는 상황 
-		DetectWidget->DecreaseDetection();
+		BB->SetBB_Target(nullptr); //나가야 하는 상황 
 		IsPlayerInRange = false;
 	}
 	else
 	{
-		BBData->SetBB_Target(player); //들어가야 하는 상황
-		DetectWidget->IncreaseDetection();
+		BB->SetBB_Target(Actor); //들어가야 하는 상황
 		IsPlayerInRange = true;
+	}
+
+	if (BB->GetBB_IsDetect()) { return; }
+
+	if (IsPlayerInRange)
+	{
+		DetectWidget->IncreaseDetection();
+	}
+	else
+	{
+		DetectWidget->DecreaseDetection();
 	}
 }
 

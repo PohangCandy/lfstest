@@ -7,6 +7,7 @@
 #include "ASEnemyInterface.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnChangeStateDelegate, uint8 /*state*/);
+DECLARE_DELEGATE(FOnAttackEndDelegate)
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
@@ -26,7 +27,12 @@ class ASPROTOTYPE_API IASEnemyInterface
 public:
 	virtual AActor* GetPatrolPath()=0;
 	virtual FVector GetTargetLocation() = 0;
+	virtual AActor* GetTarget() = 0;
 	virtual void TurnToTarget(FVector Position) = 0;
-	FOnChangeStateDelegate OnChangeStateDelegate;
+	virtual void InitState() = 0;
+	virtual void Attack() = 0;
+
+	virtual FOnChangeStateDelegate& GetStateDelegate() = 0;
+	virtual void SetAIAttackDelegate(FOnAttackEndDelegate& OnAttackEndDelegate) = 0;
 
 };

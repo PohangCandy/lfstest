@@ -16,11 +16,9 @@ class ASPROTOTYPE_API AASFinalTarget : public AASEnemyCharacter
 	
 public:
 	AASFinalTarget();
-	virtual void SetDead() override;
 	class AASGameMode* CurGameMode;
 
 	virtual void BeginPlay() override;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
 	TObjectPtr<class UAnimMontage> BossDeathMontage;
 };

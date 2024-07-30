@@ -20,6 +20,7 @@ EBTNodeResult::Type UBTTask_FindLastKnownPostion::ExecuteTask(UBehaviorTreeCompo
 	{
 		return EBTNodeResult::Failed;
 	}
+
 	IGetSetBlackBoardDataInterface* BlackBoard = Cast<IGetSetBlackBoardDataInterface>(ControllingPawn->GetController());
 	if (BlackBoard == nullptr)
 	{

@@ -22,10 +22,6 @@ public:
 	void RunAI();
 	void StopAI();
 
-
-
-
-
 	//BB 데이터 정보 
 	virtual void SetBB_LastKnownPosition(FVector vector) override;
 	virtual FVector GetBB_LastKnownPosition() override;
@@ -55,6 +51,7 @@ public:
 
 
 private:
+
 	//BB,BT 
 	UPROPERTY()
 	TObjectPtr<class UBlackboardData> BBAsset;

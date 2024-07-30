@@ -5,6 +5,7 @@
 #include "Components/ProgressBar.h"
 #include "Math/UnrealMathUtility.h"
 #include "Components/WidgetComponent.h"
+#include "Interface/ASAIWidgetInterface.h"
 
 
 void UASDetectWidget::NativeConstruct()
@@ -12,11 +13,13 @@ void UASDetectWidget::NativeConstruct()
 	Super::NativeConstruct();
 	DetectBar = Cast<UProgressBar>(GetWidgetFromName(TEXT("DetectProgressBar")));
 	ensure(DetectBar);
-	//DetectBar->SetVisibility(ESlateVisibility::Hidden);
+
+
 	IsDecrease = false;
 	Max = 1.0f;
 	Min = 0.0f;
 	Speed = 0.5;
+
 	if (CurveFloat)
 	{
 		FOnTimelineFloat TimelineProgress;
@@ -24,8 +27,17 @@ void UASDetectWidget::NativeConstruct()
 		Timeline.AddInterpFloat(CurveFloat, TimelineProgress);
 		ensure(CurveFloat);
 	}
+	
 	DetectBar->SetVisibility(ESlateVisibility::Hidden);
 	AddToViewport();
+
+	
+	IASAIWidgetInterface* Enemy = Cast<IASAIWidgetInterface>(Owner);
+	if (Enemy)
+	{
+		UASUserWidget* Widget = Cast<UASUserWidget>(this); 
+		Enemy->SetupDetectWidget(Widget);
+	}
 }
 
 void UASDetectWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)

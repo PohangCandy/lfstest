@@ -16,16 +16,7 @@ class ASPROTOTYPE_API UBTTask_Combat : public UBTTaskNode
 
 public:
 	UBTTask_Combat();
-
-	//bool IsAttacking;
-	//EState *state;
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-
-
-	//virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds);
-
-private:
-	bool IsPlaying;
 
 };

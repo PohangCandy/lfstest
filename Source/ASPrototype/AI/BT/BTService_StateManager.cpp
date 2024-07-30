@@ -21,8 +21,8 @@ void UBTService_StateManager::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 		return;
 	}
 
-	IASEnemyInterface* Enemy = Cast<IASEnemyInterface>(ControllingPawn);
-	if (Enemy == nullptr)
+	IASEnemyInterface* EnemyInterface = Cast<IASEnemyInterface>(ControllingPawn);
+	if (EnemyInterface == nullptr)
 	{
 		return;
 	}
@@ -47,7 +47,7 @@ void UBTService_StateManager::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 		state = 0;
 	}
 	
-	Enemy->OnChangeStateDelegate.Broadcast(state);
+	EnemyInterface->GetStateDelegate().Broadcast(state);
 }
 
 

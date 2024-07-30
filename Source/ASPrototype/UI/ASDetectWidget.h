@@ -55,7 +55,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<class UProgressBar> DetectBar;
 
-
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime);
