@@ -20,7 +20,7 @@ void AASTestSoundBlock::BeginPlay()
 	Super::BeginPlay();	
 }
 
-void AASTestSoundBlock::NoiseCheck(FVector loc, TCHAR* tag)
+void AASTestSoundBlock::NoiseCheck(FVector loc, FName tag)
 {
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), _sound, loc);
 	UAISense_Hearing::ReportNoiseEvent(GetWorld(), loc, 1.0f, this, 0.0f, tag);

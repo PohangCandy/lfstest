@@ -395,7 +395,7 @@ void AASCharacterPlayer::AttackCheck()
 
 	FVector ViewStart = Location;
 	FVector End = ViewStart + (Rotation.Vector() * BulletRange * 3);
-	UE_LOG(AS, Warning, TEXT("BulletRange: %f"), BulletRange);
+	//UE_LOG(AS, Warning, TEXT("BulletRange: %f"), BulletRange);
 	//FVector Weapon = CurrentWeapon->GetActorLocation();
 	USkeletalMeshComponent* WeaponMesh = CurrentWeapon->GetWeaponMesh();
 	FVector Start = WeaponMesh->GetSocketLocation("Gun_pointSocket");

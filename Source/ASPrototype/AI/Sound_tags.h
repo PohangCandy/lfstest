@@ -5,7 +5,7 @@
 //LNK2005 에러 발생. 
 namespace tags
 {
-	static TCHAR * lvl1_Sound_tag = TEXT("lvl1");
-	static TCHAR * lvl2_Sound_tag = TEXT("lvl2");
-	static TCHAR* lvl3_Sound_tag = TEXT("lvl3");
+	static FName lvl1_Sound_tag = TEXT("lvl1");
+	static FName lvl2_Sound_tag = TEXT("lvl2");
+	static FName lvl3_Sound_tag = TEXT("lvl3");
 }
