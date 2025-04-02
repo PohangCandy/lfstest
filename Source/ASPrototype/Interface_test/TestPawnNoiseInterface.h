@@ -22,5 +22,5 @@ class ASPROTOTYPE_API ITestPawnNoiseInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual void NoiseCheck(FVector loc, TCHAR* tag) = 0;
+	virtual void NoiseCheck(FVector loc, FName tag) = 0;
 };
