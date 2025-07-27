@@ -22,7 +22,7 @@
 ## 게임설명 
 **“적진에 잠입해서, 타겟을 암살하라!”**
 -
-<a href="https://youtu.be/AtsgU5bLuS8?feature=shared" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/youtube.svg" alt="AmericanSniper" height="30" width="40" /></a> [잠입 암살 요소를 담은 **TPS**(Third Person Shooter) Game  ](https://youtu.be/AtsgU5bLuS8?feature=shared)
+<a href="https://youtu.be/upSMpmmItRo?feature=shared" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/youtube.svg" alt="AmericanSniper" height="30" width="40" /></a> [잠입 암살 요소를 담은 **TPS**(Third Person Shooter) Game  ](https://youtu.be/AtsgU5bLuS8?feature=shared)
 ![Group 23](https://github.com/PohangCandy/lfstest/assets/130345776/d9f571fd-56fa-4ab3-8c2a-fcd3a9d137c2)
 
 
